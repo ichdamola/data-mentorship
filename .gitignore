@@ -1,0 +1,61 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.venv/
+venv/
+env/
+.env
+.ipynb_checkpoints/
+
+# Tooling
+.uv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Data artifacts (curriculum-specific — these add up fast)
+data/
+datasets/
+raw/
+staging/
+warehouse/
+*.csv
+*.parquet
+*.arrow
+*.feather
+*.duckdb
+*.duckdb.wal
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+*.json.gz
+*.xz
+*.zst
+
+# Orchestrator state
+airflow.cfg
+airflow.db
+dagster.yaml
+logs/
+runs/
+
+# Common analytics/cache
+.dbt/
+target/
+dbt_packages/
+.metabase/
+.superset/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
