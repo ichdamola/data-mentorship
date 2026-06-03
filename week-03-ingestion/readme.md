@@ -42,6 +42,4 @@ For the optional CDC exercise: Docker + Postgres.
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 04: Data Quality Fundamentals →](../week-04-data-quality-fundamentals/readme.md)

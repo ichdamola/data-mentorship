@@ -39,6 +39,4 @@ uv add pandera great-expectations soda-core ydata-profiling
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 05: Deduplication + Entity Resolution →](../week-05-deduplication-entity-resolution/readme.md)

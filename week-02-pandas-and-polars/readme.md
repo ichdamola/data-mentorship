@@ -41,6 +41,4 @@ We'll reuse the NYC taxi parquet from week 01.
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 03: Ingestion →](../week-03-ingestion/readme.md)
