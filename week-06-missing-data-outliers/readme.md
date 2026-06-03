@@ -41,6 +41,4 @@ uv add scikit-learn missingno pyod
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 07: Normalization + Schema Enforcement →](../week-07-normalization-schema-enforcement/readme.md)

@@ -41,6 +41,4 @@ uv run python -m spacy download en_core_web_sm
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 09: Joins at Scale →](../week-09-joins-at-scale/readme.md)

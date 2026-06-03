@@ -39,6 +39,4 @@ uv add pandera pyarrow pydantic phonenumbers babel
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 08: Text Cleaning + Fuzzy Matching →](../week-08-text-cleaning-fuzzy-matching/readme.md)

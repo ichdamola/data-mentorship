@@ -40,6 +40,4 @@ uv add splink rapidfuzz duckdb pandas polars
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 06: Missing Data + Outliers →](../week-06-missing-data-outliers/readme.md)
