@@ -41,6 +41,4 @@ uv add scikit-learn category-encoders xgboost lightgbm
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 12: Vector Embeddings + Semantic Enrichment →](../week-12-vector-embeddings-semantic/readme.md)

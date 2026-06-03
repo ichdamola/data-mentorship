@@ -41,6 +41,4 @@ uv add sentence-transformers hnswlib chromadb pillow
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 13: EDA + Statistical Foundations →](../week-13-eda-statistical-foundations/readme.md)

@@ -42,6 +42,4 @@ uv run python -c "import duckdb; duckdb.connect().install_extension('spatial')"
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 10: External Enrichment →](../week-10-external-enrichment/readme.md)

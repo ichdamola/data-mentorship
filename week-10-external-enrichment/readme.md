@@ -43,6 +43,4 @@ For Census: register for a free [Census API key](https://api.census.gov/data/key
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 11: Feature Engineering →](../week-11-feature-engineering/readme.md)
