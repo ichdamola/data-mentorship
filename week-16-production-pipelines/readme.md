@@ -47,6 +47,4 @@ uv add apache-airflow
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Curriculum complete** — you've gone from raw CSV to a live production pipeline.

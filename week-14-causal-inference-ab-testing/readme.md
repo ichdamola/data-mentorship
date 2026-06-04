@@ -40,6 +40,4 @@ uv add statsmodels econml dowhy scipy
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 15: Dashboards + Storytelling →](../week-15-dashboards-and-storytelling/readme.md)

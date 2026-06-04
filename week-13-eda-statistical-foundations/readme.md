@@ -41,6 +41,4 @@ uv add matplotlib seaborn statsmodels scipy
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 14: Causal Inference + A/B Testing →](../week-14-causal-inference-ab-testing/readme.md)

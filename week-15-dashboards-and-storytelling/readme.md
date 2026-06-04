@@ -51,6 +51,4 @@ uv add streamlit plotly altair
 
 ---
 
-> 🚧 **Scaffolded.** Theory + lab fully fleshed in the next pass.
-
 **Next**: [Week 16: Production Pipelines →](../week-16-production-pipelines/readme.md)
