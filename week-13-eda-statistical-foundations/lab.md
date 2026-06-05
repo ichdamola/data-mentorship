@@ -153,24 +153,27 @@ You should see:
 
 Is the average tip percentage on credit-card trips different between weekdays and weekends?
 
+> ⚠️ **Polars version pin**: `dt.weekday()` returns **1=Mon..7=Sun in Polars ≥ 0.19**; older Polars returned 0..6 and the filter `< 6` would silently include Saturday. Use `polars >= 1.0` in this lab. The `is_in([6, 7])` form is more explicit than the inequality and self-documents which days are "weekend."
+
 ```python
 trips = df.filter(pl.col("payment_type") == 1).with_columns(
-    pickup_dow=pl.col("tpep_pickup_datetime").dt.weekday(),
+    pickup_dow=pl.col("tpep_pickup_datetime").dt.weekday(),  # 1=Mon .. 7=Sun
     tip_pct=pl.col("tip_amount") / pl.col("fare_amount").clip(0.01, None),
 )
 
-weekday = trips.filter(pl.col("pickup_dow") < 6)["tip_pct"].to_numpy()
-weekend = trips.filter(pl.col("pickup_dow") >= 6)["tip_pct"].to_numpy()
+weekday = trips.filter(pl.col("pickup_dow").is_in([1, 2, 3, 4, 5]))["tip_pct"].to_numpy()
+weekend = trips.filter(pl.col("pickup_dow").is_in([6, 7]))["tip_pct"].to_numpy()
 
-# Take a sample for tractability
-weekday_s = np.random.choice(weekday, 5000, replace=False)
-weekend_s = np.random.choice(weekend, 5000, replace=False)
+print(f"n weekday: {len(weekday):,}   n weekend: {len(weekend):,}")
+print(f"weekday mean tip %: {weekday.mean()*100:.2f}")
+print(f"weekend mean tip %: {weekend.mean()*100:.2f}")
+print(f"observed difference: {(weekday.mean() - weekend.mean())*100:.3f} percentage points")
 
-print(f"weekday mean tip %: {weekday_s.mean()*100:.2f}")
-print(f"weekend mean tip %: {weekend_s.mean()*100:.2f}")
-print(f"observed difference: {(weekday_s.mean() - weekend_s.mean())*100:.3f} percentage points")
-
-def permutation_test(a, b, n_iter=5000):
+def permutation_test(a, b, n_iter=2000):
+    """Permutation test on the FULL samples. A permutation test's whole
+    point is that it uses every observation — sub-sampling here would
+    throw away power for no reason (the inner loop is O(n) per iter,
+    seconds on millions of rows)."""
     observed = a.mean() - b.mean()
     combined = np.concatenate([a, b])
     n_a = len(a)
@@ -183,13 +186,15 @@ def permutation_test(a, b, n_iter=5000):
             extreme_count += 1
     return extreme_count / n_iter, observed
 
-p, observed = permutation_test(weekday_s, weekend_s)
+p, observed = permutation_test(weekday, weekend)
 print(f"\npermutation test p-value: {p:.4f}")
 print(f"observed difference: {observed*100:.3f} pp")
 
-# Effect size — Cohen's d
-pooled_sd = np.sqrt((weekday_s.var(ddof=1) + weekend_s.var(ddof=1)) / 2)
-cohens_d = (weekday_s.mean() - weekend_s.mean()) / pooled_sd
+# Effect size — Cohen's d (sample-weighted pooled SD; works for any n_a, n_b)
+n_a, n_b = len(weekday), len(weekend)
+pooled_var = ((n_a - 1) * weekday.var(ddof=1) + (n_b - 1) * weekend.var(ddof=1)) / (n_a + n_b - 2)
+pooled_sd = np.sqrt(pooled_var)
+cohens_d = (weekday.mean() - weekend.mean()) / pooled_sd
 print(f"Cohen's d: {cohens_d:.4f}")
 ```
 

@@ -377,7 +377,11 @@ WITH numbered AS (
 ),
 groups AS (
     SELECT *,
-        login_date - INTERVAL (rn) DAY AS streak_anchor
+        -- `login_date - INTERVAL (rn) DAY` is NOT valid SQL. Portable forms:
+        --   DuckDB:   login_date - INTERVAL 1 DAY * rn
+        --   Postgres: login_date - (rn || ' days')::INTERVAL
+        --   Both:     login_date - rn        -- DATE minus INT works on DuckDB and Postgres
+        login_date - INTERVAL 1 DAY * rn AS streak_anchor
     FROM numbered
 )
 SELECT

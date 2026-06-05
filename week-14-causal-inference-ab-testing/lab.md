@@ -49,7 +49,7 @@ n_5 = analysis.solve_power(
 print(f"sample size per group for 5% relative lift detection: {int(n_5):,}")
 ```
 
-You should see: 2% MDE needs ~80k per group; 5% needs ~13k. **The MDE drives sample size dramatically.**
+**Run it.** At baseline 10% with a relative MDE of 2% (absolute lift 10.0% → 10.2%), `cohens_h ≈ 0.0066`, and the math gives roughly **n ≈ 180,000 per group**, not 80,000 — a 2% relative lift on a 10% baseline is a tiny absolute effect and demands a lot of samples. At 5% relative MDE you need around **n ≈ 30,000 per group**. Trust the number `solve_power` prints, not a memorized one — the MDE relationship is highly non-linear.
 
 ---
 
@@ -115,13 +115,36 @@ def simulate_with_peeking(n_total, baseline_conv, true_lift, n_checks=10, n_sims
                     break
     return false_positives / n_sims
 
-# Null effect: should see ~5% FPR with no peeking; much higher with peeking
-fp_no_lift = simulate_with_peeking(n_total=20_000, baseline_conv=0.10, true_lift=0.0, n_checks=10, n_sims=500)
-print(f"under TRUE null effect, peeking 10 times: 'significant' in {fp_no_lift:.1%} of sims")
-print(f"(naive 5% expectation is false! actual FPR is much higher)")
+# Side-by-side comparison: NO peeking (test only at the end) vs peeking 10×.
+# Without the baseline you have no calibration point — you'd just see one
+# number and trust the prose.
+
+def simulate_no_peeking(n_total, baseline_conv, true_lift, n_sims=1000):
+    """Test only once, at the end. Should sit at ~5% under the null."""
+    treatment_conv = baseline_conv * (1 + true_lift)
+    rejections = 0
+    for _ in range(n_sims):
+        control = np.random.binomial(1, baseline_conv, n_total)
+        treatment = np.random.binomial(1, treatment_conv, n_total)
+        p_pooled = (control.sum() + treatment.sum()) / (2 * n_total)
+        se = np.sqrt(p_pooled * (1 - p_pooled) * (2 / n_total))
+        if se > 0:
+            z = (treatment.mean() - control.mean()) / se
+            p = 2 * (1 - stats.norm.cdf(abs(z)))
+            if p < 0.05:
+                rejections += 1
+    return rejections / n_sims
+
+# Under the TRUE null effect:
+fp_no_peek = simulate_no_peeking(n_total=20_000, baseline_conv=0.10, true_lift=0.0, n_sims=500)
+fp_peek    = simulate_with_peeking(n_total=20_000, baseline_conv=0.10, true_lift=0.0, n_checks=10, n_sims=500)
+print(f"NO peeking, test once at end:  'significant' in {fp_no_peek:.1%} of sims  ← should be ~5%")
+print(f"peeking 10 times, stop at first p<0.05:  {fp_peek:.1%} of sims  ← inflated")
+print(f"\nThe difference IS alpha inflation. Without sequential correction,")
+print(f"every extra peek bleeds false positives into your 'significant' bucket.")
 ```
 
-You should see the false positive rate well above 5% — typically 15-30%. **This is why peeking is the cardinal A/B sin.**
+You should see the no-peeking FPR sit near 5% and the peeking FPR climb to 15-30%. **The gap is alpha inflation made concrete.**
 
 ---
 
@@ -196,9 +219,13 @@ control_failures = len(control) - control_successes
 treatment_successes = treatment.sum()
 treatment_failures = len(treatment) - treatment_successes
 
-# Beta priors (uniform = Beta(1, 1))
-post_control = stats.beta(1 + control_successes, 1 + control_failures)
-post_treatment = stats.beta(1 + treatment_successes, 1 + treatment_failures)
+# Beta priors. Beta(1,1) is the uniform prior (equivalent to 2 pseudo-obs);
+# Beta(0.5, 0.5) is the Jeffreys prior — the conventional default for
+# proportions and what most A/B platforms use. At sample sizes >1000 they're
+# indistinguishable, but for very small studies pick deliberately.
+PRIOR_A, PRIOR_B = 1, 1   # uniform; switch to 0.5, 0.5 for Jeffreys
+post_control = stats.beta(PRIOR_A + control_successes, PRIOR_B + control_failures)
+post_treatment = stats.beta(PRIOR_A + treatment_successes, PRIOR_B + treatment_failures)
 
 # Monte Carlo
 samples = 100_000
@@ -260,22 +287,66 @@ covariates = df[["age", "income", "prior_engagement"]].values
 propensity_model = LogisticRegression(max_iter=1000).fit(covariates, df["treated"])
 df["propensity"] = propensity_model.predict_proba(covariates)[:, 1]
 
-# Nearest-neighbor matching: each treated unit → 1 control with closest propensity
+# Nearest-neighbor matching: each treated unit → 1 control with closest propensity.
+# This is 1-NN matching WITH REPLACEMENT (a single high-propensity control can
+# be matched to many treated units). Documented method, but it loses the
+# independence assumption needed for a naive matched-pair t-test — for SEs,
+# bootstrap the whole pipeline.
 treated_df = df[df["treated"] == 1]
 control_df = df[df["treated"] == 0]
+
+# Common-support check: PSM is unidentified when the propensity ranges don't
+# overlap (e.g., some treated have propensity 0.95 but no control exceeds 0.5).
+print(f"propensity ranges — treated: [{treated_df['propensity'].min():.3f}, {treated_df['propensity'].max():.3f}]"
+      f"  control: [{control_df['propensity'].min():.3f}, {control_df['propensity'].max():.3f}]")
+assert treated_df["propensity"].min() >= control_df["propensity"].min() and \
+       treated_df["propensity"].max() <= control_df["propensity"].max(), \
+       "common-support violated — drop the off-support treated units before matching"
 
 nbrs = NearestNeighbors(n_neighbors=1).fit(control_df[["propensity"]])
 distances, indices = nbrs.kneighbors(treated_df[["propensity"]])
 
-matched_treated_outcomes = treated_df["outcome"].values
-matched_control_outcomes = control_df["outcome"].iloc[indices.flatten()].values
+# CALIPER: drop matches where the propensities differ by more than 0.2 of an SD
+# of the propensity (standard rule of thumb, Stuart 2010). Without a caliper
+# you sometimes match propensity-0.9 treated to propensity-0.3 control.
+caliper = 0.2 * df["propensity"].std()
+keep = distances.flatten() <= caliper
+print(f"kept {keep.sum()} / {len(keep)} matches within caliper {caliper:.3f}")
+
+matched_treated_outcomes = treated_df["outcome"].values[keep]
+matched_control_outcomes = control_df["outcome"].iloc[indices.flatten()].values[keep]
 
 psm_effect = (matched_treated_outcomes - matched_control_outcomes).mean()
-print(f"\nPSM-adjusted effect: {psm_effect:+.4f}")
+
+# Bootstrap SE — the matched pairs aren't independent (with-replacement
+# matching + caliper); naive t-test SEs are wrong. Bootstrap the whole pipeline.
+rng = np.random.default_rng(42)
+boot = []
+for _ in range(500):
+    idx = rng.choice(len(df), size=len(df), replace=True)
+    boot_df = df.iloc[idx].reset_index(drop=True)
+    boot_t = boot_df[boot_df["treated"] == 1]
+    boot_c = boot_df[boot_df["treated"] == 0]
+    if len(boot_t) < 10 or len(boot_c) < 10:
+        continue
+    b_nbrs = NearestNeighbors(n_neighbors=1).fit(boot_c[["propensity"]])
+    b_d, b_i = b_nbrs.kneighbors(boot_t[["propensity"]])
+    b_keep = b_d.flatten() <= caliper
+    if b_keep.sum() < 10:
+        continue
+    boot.append(
+        (boot_t["outcome"].values[b_keep] -
+         boot_c["outcome"].iloc[b_i.flatten()].values[b_keep]).mean()
+    )
+boot_lo, boot_hi = np.percentile(boot, [2.5, 97.5])
+
+print(f"\nPSM-adjusted effect: {psm_effect:+.4f}  (bootstrap 95% CI: [{boot_lo:+.4f}, {boot_hi:+.4f}])")
 print(f"TRUE effect:          {TRUE_EFFECT:+.4f}")
 ```
 
-PSM should produce an estimate much closer to TRUE_EFFECT than naive. **Adjustment works when confounders are observed and the model captures them.**
+PSM should produce an estimate much closer to TRUE_EFFECT than naive, and the bootstrap CI should cover TRUE_EFFECT. **Adjustment works when confounders are observed and the model captures them.**
+
+> 💡 **In production**, prefer `econml.dml.LinearDML` (double-ML) or `dowhy.CausalModel.estimate_effect(..., method_name="backdoor.propensity_score_matching")` — they handle common support, calipers, SEs, and sensitivity to propensity-model misspecification properly. The roll-your-own version above is for understanding the mechanics.
 
 ---
 
@@ -333,6 +404,9 @@ You should see the DiD recover ~+10. The parallel trends assumption was satisfie
 ## Exercise 14.9 — Confounder vs collider example
 
 ```python
+# Re-seed for reproducibility — prior exercises consume the global RNG.
+np.random.seed(42)
+
 # Confounder: Z affects both T and Y
 # If we adjust for Z, we get the true effect
 n = 5000
@@ -350,6 +424,9 @@ df_conf = pd.DataFrame({"T": T.astype(int), "Y": Y, "Z": Z})
 m1 = smf.ols("Y ~ T + Z", data=df_conf).fit()
 print(f"adjusted (correctly):  {m1.params['T']:+.3f}")
 print(f"true effect:            +2.000\n")
+
+# Re-seed for reproducibility.
+np.random.seed(43)
 
 # Collider: T → C, Y → C; adjusting C creates fake correlation
 T2 = (np.random.normal(0, 1, n)) > 0

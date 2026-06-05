@@ -151,7 +151,7 @@ pandas doesn't always know whether `filtered` is a view or a copy of `df`. The w
 2. Use `.loc` for the modification: `df.loc[df["fare_amount"] > 10, "fare_amount"] *= 2`
 3. Use `.assign()` in a chain — produces a guaranteed new DataFrame
 
-In pandas 2.2+ with **Copy-on-Write** mode (`pd.options.mode.copy_on_write = True`), this whole footgun goes away. It's the default in pandas 3.0. **Turn it on now.**
+**As of pandas 3.0 (released 2025), Copy-on-Write is always on** — the `pd.options.mode.copy_on_write` toggle is deprecated and removed. Setting it on 3.x raises a `FutureWarning`; on 2.2+ it's already the default behavior. **Don't disable it.** If you want to see the historical footgun, pin `pandas==2.0` in a scratch env — on modern pandas the whole class of bug above quietly went away.
 
 ### Footgun 2: `apply` is slow
 
@@ -373,6 +373,11 @@ Habit to adopt: **default to `.scan_parquet` / lazy mode**. Drop to eager only w
 | Melt (unpivot) | `df.melt(...)` | `df.unpivot(...)` |
 | First/last per group | `df.groupby("a").head(1)` | `df.group_by("a").first()` |
 | Window function | `df.groupby("a")["b"].transform("sum")` | `df.with_columns(pl.col("b").sum().over("a"))` |
+| Day of week | `df["d"].dt.dayofweek` *(0=Mon..6=Sun)* | `pl.col("d").dt.weekday()` *(**1=Mon..7=Sun**)* |
+| Hour of day | `df["d"].dt.hour` | `pl.col("d").dt.hour()` |
+| Week of year | `df["d"].dt.isocalendar().week` | `pl.col("d").dt.week()` |
+
+> ⚠️ **Day-of-week trap.** pandas uses 0-6 (Mon=0); Polars uses 1-7 (Mon=1) since 0.19. The *same code* `dow < 6` means Mon–Fri in pandas and Mon–Sat in Polars. Use `is_in([1..5])` / `is_in([0..4])` explicitly when porting between the two.
 
 The mental compiler: pandas mostly speaks "verbs on DataFrames", Polars speaks "expressions in contexts". After 30 minutes of practice the translation is automatic.
 

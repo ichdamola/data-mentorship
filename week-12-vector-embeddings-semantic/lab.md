@@ -151,7 +151,12 @@ def search(query: str, k: int = 5):
 for q in ["wireless headphones", "running shoes", "phone with great camera"]:
     print(f"\nQuery: {q}")
     for r in search(q, k=3):
-        print(f"  dist={r['distance']:.3f}  {r['description']}")
+        # hnswlib's `cosine` space returns distance = 1 - cos_sim.
+        # Smaller distance = more similar. Theory weeks talk in cos_sim
+        # (0.6 = related, 0.3 = unrelated); show both so the mental model
+        # carries over.
+        cos_sim = 1 - r['distance']
+        print(f"  cos_sim={cos_sim:.3f}  (dist={r['distance']:.3f})  {r['description']}")
 ```
 
 Sub-millisecond per query against 50k vectors. **This is the engine that powers semantic search.**
@@ -255,9 +260,9 @@ ticket_embs = model.encode(tickets, convert_to_numpy=True)
 similarities = util.cos_sim(ticket_embs, label_embs).numpy()
 predicted = similarities.argmax(axis=1)
 
-for ticket, pred_idx in zip(tickets, predicted):
+for i, (ticket, pred_idx) in enumerate(zip(tickets, predicted)):
     print(f"{ticket}")
-    print(f"  → {labels[pred_idx]}  (sim {similarities[tickets.index(ticket), pred_idx]:.3f})\n")
+    print(f"  → {labels[pred_idx]}  (sim {similarities[i, pred_idx]:.3f})\n")
 ```
 
 You should see reasonable predictions: refund → billing, delivery → shipping, defect → product, etc. **Zero training examples; only label prototypes.**
@@ -321,7 +326,15 @@ For a more production-shaped path, swap HNSW for a real vector DB:
 ```python
 import chromadb
 client = chromadb.PersistentClient(path="data/chroma")
-collection = client.get_or_create_collection(name="products")
+
+# Chroma's default distance is L2 squared. The embeddings throughout this
+# lab were trained for cosine similarity; if you let Chroma default to L2,
+# the rankings will be silently wrong (magnitude leaks into the score).
+# Always set the metric explicitly to match how the embeddings were trained.
+collection = client.get_or_create_collection(
+    name="products",
+    metadata={"hnsw:space": "cosine"},
+)
 
 collection.add(
     embeddings=embeddings.tolist(),

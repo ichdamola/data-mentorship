@@ -186,21 +186,29 @@ class APICache:
         self.con.execute("""
             CREATE TABLE IF NOT EXISTS cache (
                 hash TEXT PRIMARY KEY,
+                fn_name TEXT NOT NULL,
+                fn_version TEXT NOT NULL,
                 input TEXT,
                 result TEXT,
                 cached_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
 
-    def get_or_compute(self, input_str: str, compute_fn):
-        h = hashlib.sha256(input_str.encode()).hexdigest()
+    def get_or_compute(self, input_str: str, compute_fn, *, fn_name: str, fn_version: str = "v1"):
+        # Key by (input, fn_name, fn_version) — otherwise calls to the same
+        # cache from two different enrichment functions (e.g. geocoding via
+        # Nominatim vs Google Maps) collide on identical inputs and return
+        # the wrong cached result. Bump fn_version when the upstream
+        # response shape changes.
+        key = f"{fn_name}:{fn_version}:{input_str}"
+        h = hashlib.sha256(key.encode()).hexdigest()
         row = self.con.execute("SELECT result FROM cache WHERE hash=?", (h,)).fetchone()
         if row:
             return json.loads(row[0])
         result = compute_fn(input_str)
         self.con.execute(
-            "INSERT INTO cache (hash, input, result) VALUES (?, ?, ?)",
-            (h, input_str, json.dumps(result)),
+            "INSERT INTO cache (hash, fn_name, fn_version, input, result) VALUES (?, ?, ?, ?, ?)",
+            (h, fn_name, fn_version, input_str, json.dumps(result)),
         )
         self.con.commit()
         return result

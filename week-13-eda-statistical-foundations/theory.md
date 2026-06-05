@@ -98,17 +98,22 @@ The bootstrap fixes this in a way that works for almost any statistic:
 
 ```python
 import numpy as np
+from scipy.stats import bootstrap
 
-def bootstrap_ci(data, statistic, n_iter=10_000, alpha=0.05):
+def bootstrap_ci(data, statistic, n_iter=10_000, alpha=0.05, method="BCa"):
     """Returns (point_estimate, lower, upper) for a 1-alpha CI."""
-    boot_estimates = [
-        statistic(np.random.choice(data, size=len(data), replace=True))
-        for _ in range(n_iter)
-    ]
-    return statistic(data), np.percentile(boot_estimates, alpha/2 * 100), np.percentile(boot_estimates, (1-alpha/2) * 100)
+    res = bootstrap((data,), statistic, n_resamples=n_iter,
+                    confidence_level=1 - alpha, method=method)
+    return statistic(data), res.confidence_interval.low, res.confidence_interval.high
 ```
 
-For a 95% CI on the median of a heavy-tailed distribution where a t-test would be wrong: bootstrap is right.
+> ℹ️ **Which bootstrap method?** Three flavors:
+> - **Basic (reverse percentile)** — works when the bootstrap distribution is roughly symmetric.
+> - **Percentile** — fast and intuitive. Undercoverage for skewed statistics (medians, ratios, correlations) — heavy-tailed medians in particular have known poor coverage with this method.
+> - **BCa** (bias-corrected, accelerated) — **recommended default**. Corrects for bias and skew in the bootstrap distribution. SciPy implements it via `method="BCa"`.
+> - **Bootstrap-t** — useful when SE is easy to compute analytically.
+>
+> Sample size matters: under ~100 samples, no bootstrap CI is trustworthy. For a 95% CI on the median of a heavy-tailed distribution, BCa is the right choice — the percentile method can silently undercover.
 
 **Computational cost**: 10k iterations × a few microseconds each → seconds. Worth it for any non-trivial estimate you're going to report.
 

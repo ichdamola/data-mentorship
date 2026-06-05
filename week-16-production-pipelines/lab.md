@@ -461,14 +461,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: pip install uv && uv sync
+      # Persistence: each Actions runner is a fresh ephemeral VM. Without
+      # this restore step, `warehouse.duckdb` from yesterday is gone and
+      # every "incremental" load actually does a full rebuild.
+      - uses: actions/cache@v4
+        with:
+          path: data/warehouse.duckdb
+          key: duckdb-warehouse-${{ github.run_id }}
+          restore-keys: |
+            duckdb-warehouse-
       - run: uv run python ingestion/nyc_open_data.py
       - run: uv run python ingestion/bronze_to_duckdb.py
+      - run: cd dbt && uv run dbt source freshness --profiles-dir .   # fail if sources stale
       - run: cd dbt && uv run dbt build --profiles-dir .
       - run: |
           if [ $? -ne 0 ]; then
             curl -X POST $SLACK_WEBHOOK -d "{\"text\":\"Pipeline failed\"}"
           fi
 ```
+
+> ⚠️ **Real persistence for DuckDB**: the `actions/cache` step above keeps state across runs but caches are best-effort (GitHub evicts entries over 10 GB / unused). For a durable warehouse, options in increasing order of robustness: (a) sync `warehouse.duckdb` to S3 at end of run + restore at start, (b) move to **Motherduck** (hosted DuckDB; SDK identical), (c) move to **BigQuery / Snowflake / Redshift**. The capstone is fine with `actions/cache` for the assignment; production wants Motherduck or a real warehouse.
 
 For the capstone: any of these is fine. Cron is the simplest; GitHub Actions is free and observable.
 

@@ -136,11 +136,38 @@ You measured 5 metrics; one is significant. Multiple comparisons (week 13) — *
 
 ### Spillover / network effects
 
-A user in treatment influences a user in control (marketplaces, social networks, B2B teams). Standard A/B math fails. Use **geo-experiments** or **switchback testing** instead.
+A user in treatment influences a user in control (marketplaces, social networks, B2B teams). Standard A/B math fails because SUTVA — the assumption that one unit's treatment doesn't affect another's outcome — is broken.
+
+Three remedies, in order of how much they cost to set up:
+- **Cluster randomization.** Randomize entire groups (cities, friend-groups, B2B accounts) instead of users. The cluster is the unit of independence. Cheap to implement if your product has natural clusters.
+- **Geo-experiments.** A specific cluster-randomization: pick a set of metro areas, randomize treatment by metro. Standard at Uber, Lyft, DoorDash for marketplace experiments because the spillover is geographically bounded.
+- **Switchback testing.** Same population, but treatment flips on/off on a schedule (e.g., 30-min windows). Estimate the effect from on-vs-off windows. Used when even geo-randomization doesn't break the spillover. Requires longer runs and careful handling of carryover effects.
+
+For deeper treatment see Kohavi et al. *Trustworthy Online Controlled Experiments* ch. 22 — naive user-randomization on a marketplace product will systematically under- or over-estimate the effect depending on the spillover sign.
 
 ### Simpson's paradox lurking
 
 The overall result is a fake summary of opposite-direction segment results. Always look at the top 3-5 segments separately.
+
+---
+
+### CUPED — the free 30% sample size reduction
+
+**Controlled-experiment Using Pre-Existing Data** is the single highest-leverage technique in modern industry A/B testing. The idea: a user's pre-experiment outcome (last 30 days of revenue, page views, whatever) is a strong predictor of their during-experiment outcome. Regress the during-experiment metric on the pre-experiment metric, take the residual, then run your A/B test on the residual. This **reduces variance by 30-50%**, which means **30-50% fewer users for the same MDE**.
+
+```python
+import statsmodels.formula.api as smf
+
+# y      = outcome during experiment
+# y_pre  = same metric for each user over the 30 days BEFORE the experiment
+# T      = treatment (0/1)
+model = smf.ols("y ~ T + y_pre", data=df).fit()
+print(model.summary())   # coefficient on T is the CUPED-adjusted treatment effect
+```
+
+That's it. Every modern A/B platform (Statsig, Eppo, GrowthBook, Optimizely) implements CUPED. The catches: (1) you need a pre-experiment metric correlated with the outcome — if not, no variance reduction; (2) the covariate must be measured *before* randomization (otherwise you re-introduce confounding).
+
+> 💡 **Practical impact**: if your standard A/B test needs 200k users per group, CUPED can land you at ~120k. For products running dozens of experiments per quarter, that's the difference between "we ran 5 experiments this quarter" and "we ran 12."
 
 ---
 

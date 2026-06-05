@@ -25,8 +25,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-# Modern pandas: copy-on-write + pyarrow dtype backend by default
-pd.options.mode.copy_on_write = True
+# Modern pandas: CoW is the default in pandas 3.0; the toggle is deprecated.
+# (Leave this commented; on pandas 3.x it FutureWarns; on 2.2+ it's already on.)
+# pd.options.mode.copy_on_write = True
 
 PATH = "data/yellow_tripdata_2024-01.parquet"
 ```
@@ -316,21 +317,23 @@ Trigger each one deliberately.
 ### Footgun 1: `SettingWithCopyWarning` (in pre-CoW mode)
 
 ```python
-# Temporarily disable CoW
-pd.options.mode.copy_on_write = False
+# Historical footgun demo. On pandas 3.x this toggle is gone (FutureWarning);
+# CoW is always on. The pre-CoW behavior described below could only be
+# reproduced on pandas <2.2. Read for context; don't try to disable.
+# pd.options.mode.copy_on_write = False
 
 df_copy = df_pd.copy()
 filtered = df_copy[df_copy["fare_amount"] > 10]
 filtered["fare_amount"] = filtered["fare_amount"] * 2
 # Likely SettingWithCopyWarning
 
-# Re-enable CoW; warning goes away because pandas knows it's a copy
-pd.options.mode.copy_on_write = True
+# On modern pandas (3.x), CoW is always on — the warning doesn't fire
+# regardless of any toggle, because pandas tracks copies internally.
 filtered = df_copy[df_copy["fare_amount"] > 10]
 filtered["fare_amount"] = filtered["fare_amount"] * 2   # clean
 ```
 
-**Always run pandas 2+ with `copy_on_write = True`.** It's the default in pandas 3 anyway.
+**CoW is always-on in pandas 3.x.** On 2.2 it was opt-in; on 3.0 the toggle is deprecated and removed. The class of bug above is silently fixed for everyone now.
 
 ### Footgun 2: `.apply` is slow
 
@@ -474,7 +477,7 @@ You're building muscle memory. Next week you'll do ingestion in whichever style 
 
 ## Submission checklist
 
-- [ ] `pd.options.mode.copy_on_write = True` set
+- [ ] On pandas 3.x — CoW is always on; no toggle to set
 - [ ] Parquet loaded in both pandas (with `dtype_backend="pyarrow"`) and Polars
 - [ ] Same group-by + agg analysis done in both libs; results identical
 - [ ] Benchmark shows Polars at least 3× faster than pandas on the multi-step pipeline

@@ -60,7 +60,7 @@ SELECT
     COUNT(*)                                                AS total_trips,
     ROUND(SUM(total_amount), 2)                              AS total_revenue,
     ROUND(AVG(trip_distance), 2)                             AS avg_distance,
-    ROUND(MEDIAN(trip_distance), 2)                          AS median_distance,
+    ROUND(QUANTILE_CONT(trip_distance, 0.5), 2)              AS median_distance,
     ROUND(AVG(tip_amount / NULLIF(fare_amount, 0)) * 100, 2) AS avg_tip_pct
 FROM trips
 WHERE fare_amount > 0;
@@ -68,7 +68,7 @@ WHERE fare_amount > 0;
 
 Note `NULLIF(fare_amount, 0)` — divides safely; `0 / 0` would be NaN.
 
-`MEDIAN` is a DuckDB extension. In Postgres it's `PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ...)`.
+> ℹ️ **`MEDIAN` / `QUANTILE_CONT` / `QUANTILE_DISC`.** DuckDB ships both `MEDIAN(x)` and `QUANTILE_CONT(x, p)` — they return the same thing for p=0.5. We use `QUANTILE_CONT` here because Exercise 1.3 needs `QUANTILE_CONT(x, 0.95)` and consistency helps. **`QUANTILE_CONT` interpolates between adjacent data points; `QUANTILE_DISC` returns an actual data value** — for non-uniform distributions the two medians can differ. In Postgres these are `PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY x)` and `PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY x)`.
 </details>
 
 ---

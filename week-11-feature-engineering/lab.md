@@ -38,6 +38,11 @@ N_DAYS = 180
 # Generate user characteristics
 users = pd.DataFrame({
     "user_id": range(N_USERS),
+    # 5000 users × 3h = ~625 days spanning 2023-07-01 to ~2025-03. With a
+    # snapshot at 2024-04-01 (see SNAPSHOT_DATE below), the second half of
+    # users hasn't signed up yet — they'd otherwise get labeled "churned"
+    # by default and bias the training set. We filter to signed-up users
+    # before training (Exercise 11.4).
     "signup_date": pd.date_range(start="2023-07-01", periods=N_USERS, freq="3h").date,
     "country": np.random.choice(["US", "UK", "DE", "FR", "JP", "BR"], N_USERS, p=[0.4, 0.15, 0.15, 0.1, 0.1, 0.1]),
     "plan": np.random.choice(["free", "pro", "enterprise"], N_USERS, p=[0.6, 0.3, 0.1]),
@@ -63,6 +68,14 @@ purchases_df = pd.DataFrame(purchases)
 # Generate churn labels: users who haven't purchased in the last 30 days are "at risk"
 # For training: take a snapshot at 2024-04-01; label = will_purchase_in_30d (May 2024 is "future")
 SNAPSHOT_DATE = pd.Timestamp("2024-04-01")
+
+# Filter to users who had signed up BEFORE the snapshot date. With 5000 users
+# at 3h intervals starting 2023-07-01, the second half don't sign up until
+# after April 2024 — including them in training labels them all as "churned"
+# (they have no future purchases either, by construction) and biases the
+# model toward predicting churn on profiles that just haven't appeared yet.
+users = users[pd.to_datetime(users["signup_date"]) < SNAPSHOT_DATE].reset_index(drop=True)
+print(f"users active at snapshot: {len(users)}")
 
 # For each user, compute: did they purchase between SNAPSHOT and SNAPSHOT + 30d?
 future_purchases = purchases_df[
@@ -195,29 +208,41 @@ You should see AUC jump to 0.85+. **The features added ~25 AUC points; the model
 
 ---
 
-## Exercise 11.5 — K-fold target encoding
+## Exercise 11.5 — K-fold target encoding (fit on train, apply to test)
 
-Demonstrate target encoding done right. For `country`, replace it with the leak-free target mean.
+Target encoding must happen **after** the train/test split — never fold across it. K-fold within train prevents each train row from contributing to its own encoding; the test set then just maps through the train means.
 
 ```python
-def kfold_target_encode(df, cat_col, target_col, n_splits=5):
-    enc = pd.Series(df[target_col].mean(), index=df.index, dtype=float)
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
-    for train_idx, val_idx in kf.split(df):
-        target_means = df.iloc[train_idx].groupby(cat_col)[target_col].mean()
-        global_mean = df.iloc[train_idx][target_col].mean()
-        enc.iloc[val_idx] = df.iloc[val_idx][cat_col].map(target_means).fillna(global_mean).values
+from sklearn.model_selection import train_test_split, KFold
+
+# Split FIRST, encode SECOND. The k-fold inner loop runs only on the train side.
+train_df, test_df = train_test_split(features, test_size=0.2, random_state=42, stratify=features["churned_30d"])
+
+def kfold_target_encode_train(train_df, cat_col, target_col, n_splits=5, random_state=42):
+    """Train-side encoding: each fold's row gets the target mean from the OTHER folds."""
+    enc = pd.Series(train_df[target_col].mean(), index=train_df.index, dtype=float)
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    for fit_idx, val_idx in kf.split(train_df):
+        target_means = train_df.iloc[fit_idx].groupby(cat_col)[target_col].mean()
+        global_mean  = train_df.iloc[fit_idx][target_col].mean()
+        enc.iloc[val_idx] = train_df.iloc[val_idx][cat_col].map(target_means).fillna(global_mean).values
     return enc
 
-# Apply to country, plan
-features["country_target_encoded"] = kfold_target_encode(features, "country", "churned_30d")
-features["plan_target_encoded"] = kfold_target_encode(features, "plan", "churned_30d")
+def apply_target_encode_test(train_df, test_df, cat_col, target_col):
+    """Test-side encoding: full train target means, NO folding (test never sees its own target)."""
+    target_means = train_df.groupby(cat_col)[target_col].mean()
+    global_mean  = train_df[target_col].mean()
+    return test_df[cat_col].map(target_means).fillna(global_mean)
 
-print(features.groupby("country")["country_target_encoded"].mean())   # leak-free means
-print(features.groupby("plan")["plan_target_encoded"].mean())
+for cat in ["country", "plan"]:
+    train_df[f"{cat}_target_encoded"] = kfold_target_encode_train(train_df, cat, "churned_30d")
+    test_df[f"{cat}_target_encoded"]  = apply_target_encode_test(train_df, test_df, cat, "churned_30d")
+
+print(train_df.groupby("country")["country_target_encoded"].mean())   # train: k-fold leak-free
+print(test_df.groupby("country")["country_target_encoded"].mean())    # test: single mapping
 ```
 
-You should see different countries/plans encoded to different values reflecting their true target rates. **No specific row contributed to its own encoding** — that's the leakage prevention.
+The two-step pattern — k-fold on train, single mapping on test — is the only way to keep target encoding both leakage-free in training AND deterministic at inference time. Folding the test set in (as a naive implementation might) would leak `churned_30d` into the test features, **the very pattern Exercise 11.8 demonstrates as broken**.
 
 ---
 
