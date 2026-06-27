@@ -6,7 +6,7 @@ Most curricula skip this. ML curricula start at the model. BI courses start at t
 
 ## 🎯 Why this exists
 
-You can train a state-of-the-art model on garbage data and get garbage answers. You can pay for a beautiful BI tool and produce reports nobody trusts. Both fail at the same step: **the data was not ready.**
+You can train a model on garbage data and get garbage answers. You can pay for a beautiful BI tool and produce reports nobody trusts. Both fail at the same step: **the data was not ready.**
 
 This curriculum builds the discipline that fixes that:
 
