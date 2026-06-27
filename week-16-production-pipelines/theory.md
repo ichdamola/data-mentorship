@@ -1,8 +1,8 @@
-# Week 16: Theory — Production Data Pipelines (Capstone)
+# Week 16: Theory - Production Data Pipelines (Capstone)
 
 End of the curriculum. Sixteen weeks of cleaning, enriching, modeling, dashboarding. **This week stitches it all together** into a pipeline that runs on a schedule, survives failures, alerts when things break, and produces output the org trusts.
 
-The modern data stack — dbt, Dagster (or Airflow), the medallion architecture, CDC — has converged on a set of patterns that work. This week makes them concrete with a capstone deliverable: a running pipeline you'd actually deploy.
+The modern data stack - dbt, Dagster (or Airflow), the medallion architecture, CDC - has converged on a set of patterns that work. This week makes them concrete with a capstone deliverable: a running pipeline you'd actually deploy.
 
 ---
 
@@ -11,10 +11,10 @@ The modern data stack — dbt, Dagster (or Airflow), the medallion architecture,
 A pipeline is in production when:
 
 1. **It runs on a schedule** without manual intervention
-2. **It fails loudly** when something is wrong — alerts to a person who can fix it
-3. **It's reproducible** — same inputs produce same outputs
-4. **It's observable** — you can answer "what ran when, was it healthy, what changed"
-5. **It's documented** — both how it works and what the outputs mean
+2. **It fails loudly** when something is wrong - alerts to a person who can fix it
+3. **It's reproducible** - same inputs produce same outputs
+4. **It's observable** - you can answer "what ran when, was it healthy, what changed"
+5. **It's documented** - both how it works and what the outputs mean
 
 A notebook that runs once is not production. A Cron-driven Python script with no monitoring is barely production. Production is **the whole loop**: orchestration + tests + alerts + docs + a person on call.
 
@@ -70,8 +70,8 @@ For larger teams: replace DuckDB with Snowflake/BigQuery. Everything else stays 
 
 | Layer | What | Schema strictness | Audience |
 |---|---|---|---|
-| **Bronze** | Raw landed data (Parquet, JSONL, CSV) | Lenient — type everything as string if needed | Engineers only |
-| **Silver** | Cleaned, typed, validated, deduped | Strict — enforce schema; quarantine bad rows | Analysts |
+| **Bronze** | Raw landed data (Parquet, JSONL, CSV) | Lenient - type everything as string if needed | Engineers only |
+| **Silver** | Cleaned, typed, validated, deduped | Strict - enforce schema; quarantine bad rows | Analysts |
 | **Gold** | Modeled business entities; aggregated | Strict + semantic | Stakeholders, dashboards |
 
 In dbt, this maps to:
@@ -86,11 +86,11 @@ dbt/models/
     marketing/     # marketing-team aggregates
 ```
 
-The discipline: **gold consumers never touch bronze.** Schema changes in bronze should be absorbed at silver — gold stays stable for years.
+The discipline: **gold consumers never touch bronze.** Schema changes in bronze should be absorbed at silver - gold stays stable for years.
 
 ---
 
-## Part 4: dbt — transformation as code
+## Part 4: dbt - transformation as code
 
 **dbt** (data build tool) is the universal SQL transformation framework. Its primitives:
 
@@ -98,7 +98,7 @@ The discipline: **gold consumers never touch bronze.** Schema changes in bronze 
 |---|---|
 | **Model** | A SQL `SELECT` query; dbt wraps it in `CREATE TABLE AS` or `CREATE VIEW AS` |
 | **Source** | Reference to raw bronze tables |
-| **Ref** | `{{ ref('stg_orders') }}` — declares a dependency |
+| **Ref** | `{{ ref('stg_orders') }}` - declares a dependency |
 | **Test** | Assertion on a column (`not_null`, `unique`, `accepted_values`) |
 | **Macro** | Reusable SQL function |
 | **Seed** | Static CSV → table |
@@ -185,7 +185,7 @@ For analytics transformations, **dbt is the default.** Python scripts for ingest
 
 ---
 
-## Part 5: Orchestration — Dagster vs Airflow
+## Part 5: Orchestration - Dagster vs Airflow
 
 You need something that:
 
@@ -255,7 +255,7 @@ For most pipelines, daily cron is fine. For data that needs to be fresh (operati
 When a pipeline fails, **someone needs to know**. Channels:
 
 - Slack / Teams / Discord webhook
-- Email (less ideal — easy to ignore)
+- Email (less ideal - easy to ignore)
 - PagerDuty / Opsgenie (for critical pipelines)
 
 Alert on:
@@ -265,7 +265,7 @@ Alert on:
 - Data freshness violated (last update > N hours ago)
 - Anomaly (row count outside expected range)
 
-Don't alert on every step every run — that's noise. Alert on **violations of an SLA**.
+Don't alert on every step every run - that's noise. Alert on **violations of an SLA**.
 
 ### Observability
 
@@ -316,7 +316,7 @@ Inevitable: a bug shipped a week ago, and you need to reprocess. The pipeline mu
 - **Reset and re-run**: drop downstream tables; reproduce from scratch
 - **Idempotent runs**: re-running the same date twice produces identical output
 
-The medallion architecture supports this naturally: re-run silver from bronze (immutable); re-run gold from silver. Bronze never re-derives — it's the immutable record.
+The medallion architecture supports this naturally: re-run silver from bronze (immutable); re-run gold from silver. Bronze never re-derives - it's the immutable record.
 
 In dbt:
 

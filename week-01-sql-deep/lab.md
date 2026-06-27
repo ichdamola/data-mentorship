@@ -1,6 +1,6 @@
-# Week 01: Lab — SQL Deep
+# Week 01: Lab - SQL Deep
 
-Ten questions of increasing difficulty against the NYC Yellow Taxi data. **Solve each in SQL only** — no pandas allowed until you've got the SQL working. Then you can verify in pandas if you want.
+Ten questions of increasing difficulty against the NYC Yellow Taxi data. **Solve each in SQL only** - no pandas allowed until you've got the SQL working. Then you can verify in pandas if you want.
 
 ## Setup
 
@@ -48,7 +48,7 @@ Now you can use `FROM trips` everywhere.
 
 ---
 
-## Exercise 1.1 — Basic exploration
+## Exercise 1.1 - Basic exploration
 
 Compute: total trips, total revenue, average trip distance, median trip distance, average tip percentage. **Use one query.**
 
@@ -66,19 +66,19 @@ FROM trips
 WHERE fare_amount > 0;
 ```
 
-Note `NULLIF(fare_amount, 0)` — divides safely; `0 / 0` would be NaN.
+Note `NULLIF(fare_amount, 0)` - divides safely; `0 / 0` would be NaN.
 
-> ℹ️ **`MEDIAN` / `QUANTILE_CONT` / `QUANTILE_DISC`.** DuckDB ships both `MEDIAN(x)` and `QUANTILE_CONT(x, p)` — they return the same thing for p=0.5. We use `QUANTILE_CONT` here because Exercise 1.3 needs `QUANTILE_CONT(x, 0.95)` and consistency helps. **`QUANTILE_CONT` interpolates between adjacent data points; `QUANTILE_DISC` returns an actual data value** — for non-uniform distributions the two medians can differ. In Postgres these are `PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY x)` and `PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY x)`.
+> ℹ️ **`MEDIAN` / `QUANTILE_CONT` / `QUANTILE_DISC`.** DuckDB ships both `MEDIAN(x)` and `QUANTILE_CONT(x, p)` - they return the same thing for p=0.5. We use `QUANTILE_CONT` here because Exercise 1.3 needs `QUANTILE_CONT(x, 0.95)` and consistency helps. **`QUANTILE_CONT` interpolates between adjacent data points; `QUANTILE_DISC` returns an actual data value** - for non-uniform distributions the two medians can differ. In Postgres these are `PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY x)` and `PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY x)`.
 </details>
 
 ---
 
-## Exercise 1.2 — Top 10 most expensive trips per day
+## Exercise 1.2 - Top 10 most expensive trips per day
 
 Return, for each day in January 2024, the top 10 trips by `total_amount`.
 
 <details>
-<summary>Solution — window function + QUALIFY</summary>
+<summary>Solution - window function + QUALIFY</summary>
 
 ```sql
 SELECT
@@ -95,12 +95,12 @@ QUALIFY rank_in_day <= 10
 ORDER BY trip_date, rank_in_day;
 ```
 
-You'll see the top 10 trips per day — likely $300+ amounts each. Some are airport runs; some are credit-card refund corrections (negative trip distance).
+You'll see the top 10 trips per day - likely $300+ amounts each. Some are airport runs; some are credit-card refund corrections (negative trip distance).
 </details>
 
 ---
 
-## Exercise 1.3 — Trip duration percentiles by hour-of-day
+## Exercise 1.3 - Trip duration percentiles by hour-of-day
 
 For each hour of the day (0-23), compute: median, 90th, 95th, and 99th percentile of trip duration in minutes.
 
@@ -133,12 +133,12 @@ Observe: late-night trips have higher variance (long tail of airport runs and DU
 
 ---
 
-## Exercise 1.4 — Compare each trip to the day's average
+## Exercise 1.4 - Compare each trip to the day's average
 
-For each trip, return its `fare_amount` and the average `fare_amount` for that day, and the ratio. **Don't collapse rows** — keep one row per trip.
+For each trip, return its `fare_amount` and the average `fare_amount` for that day, and the ratio. **Don't collapse rows** - keep one row per trip.
 
 <details>
-<summary>Solution — aggregate window function</summary>
+<summary>Solution - aggregate window function</summary>
 
 ```sql
 SELECT
@@ -156,7 +156,7 @@ This is the canonical "compare each row to its group average without losing row 
 
 ---
 
-## Exercise 1.5 — 7-day rolling revenue
+## Exercise 1.5 - 7-day rolling revenue
 
 Compute daily revenue and a 7-day rolling average of daily revenue.
 
@@ -182,14 +182,14 @@ FROM daily
 ORDER BY day;
 ```
 
-The first 6 days have rolling averages of fewer than 7 days — they're not invalid, just averaging fewer values.
+The first 6 days have rolling averages of fewer than 7 days - they're not invalid, just averaging fewer values.
 </details>
 
 ---
 
-## Exercise 1.6 — LAG: time between trips per driver?
+## Exercise 1.6 - LAG: time between trips per driver?
 
-Skip — the dataset doesn't have a driver ID. Use **pickup location** as a stand-in. **For each pickup location, what's the median time between consecutive trips?**
+Skip - the dataset doesn't have a driver ID. Use **pickup location** as a stand-in. **For each pickup location, what's the median time between consecutive trips?**
 
 <details>
 <summary>Solution</summary>
@@ -229,7 +229,7 @@ You'll see suburban / airport locations with median gaps of hours; midtown locat
 
 ---
 
-## Exercise 1.7 — Bucket by tip percentage
+## Exercise 1.7 - Bucket by tip percentage
 
 Classify each trip into a tip bucket: `none` (0%), `low` (0-10%), `standard` (10-20%), `high` (20%+). Compute: count, average fare, average distance, per bucket.
 
@@ -270,7 +270,7 @@ The `payment_type = 1` filter is critical: the NYC taxi data only records tips f
 
 ---
 
-## Exercise 1.8 — Day-over-day percent change
+## Exercise 1.8 - Day-over-day percent change
 
 For each day, the revenue and the percent change vs the previous day.
 
@@ -301,7 +301,7 @@ You'll see large jumps around January 1 (low) → first business day (high), and
 
 ---
 
-## Exercise 1.9 — Gaps and islands: which days had no trips?
+## Exercise 1.9 - Gaps and islands: which days had no trips?
 
 Find any day in the dataset's range with zero trips.
 
@@ -333,12 +333,12 @@ WHERE COALESCE(t.trips, 0) = 0
 ORDER BY d.day;
 ```
 
-On the January 2024 file you should find zero zero-trip days — taxis run every day. But the technique is the standard one for sales / inventory / events analysis where missing days matter.
+On the January 2024 file you should find zero zero-trip days - taxis run every day. But the technique is the standard one for sales / inventory / events analysis where missing days matter.
 </details>
 
 ---
 
-## Exercise 1.10 — Cohort retention (the stretch)
+## Exercise 1.10 - Cohort retention (the stretch)
 
 Group trips by the pickup-location ID. For each pickup location's "cohort week" (the first week we see trips from there), compute: how many distinct days within the next 4 weeks did we see trips from there? **In one query.**
 
@@ -376,14 +376,14 @@ GROUP BY cohort_week
 ORDER BY cohort_week;
 ```
 
-For a single month of data the retention picture is partial — only one cohort has 4 weeks observable. The structure is the point.
+For a single month of data the retention picture is partial - only one cohort has 4 weeks observable. The structure is the point.
 
 **This same query shape works for:** user retention, store reactivation, product re-purchase, anything-cohort-anything. Memorize it.
 </details>
 
 ---
 
-## Exercise 1.11 — Compare query plans
+## Exercise 1.11 - Compare query plans
 
 DuckDB's `EXPLAIN` shows the plan. Run the same logical query two ways and compare:
 
@@ -401,9 +401,9 @@ SELECT * FROM (
 ) WHERE rn <= 3;
 ```
 
-You'll usually find the plans are identical — modern optimizers rewrite QUALIFY to a subquery. **Readability is the point of QUALIFY**, not raw speed.
+You'll usually find the plans are identical - modern optimizers rewrite QUALIFY to a subquery. **Readability is the point of QUALIFY**, not raw speed.
 
-For more dramatic comparisons, try comparing a `LEFT JOIN ... WHERE NULL` anti-pattern vs `ANTI JOIN` on two real tables — the plans will differ visibly.
+For more dramatic comparisons, try comparing a `LEFT JOIN ... WHERE NULL` anti-pattern vs `ANTI JOIN` on two real tables - the plans will differ visibly.
 
 ---
 
@@ -427,7 +427,7 @@ You replaced what would be ~500 lines of pandas across 10 exercises with ~150 li
 
 Window functions, CTEs, and `QUALIFY` are the SQL features most engineers never reach for and then look surprised when they see them in someone else's code. After this week they should feel as natural as `GROUP BY`.
 
-Week 02 brings pandas and Polars — for when SQL stops paying. But carry this rule into the rest of the curriculum: **if it's expressible in SQL, write it in SQL.** Reproducible. Auditable. Fast. Boring. All the things you want in production data work.
+Week 02 brings pandas and Polars - for when SQL stops paying. But carry this rule into the rest of the curriculum: **if it's expressible in SQL, write it in SQL.** Reproducible. Auditable. Fast. Boring. All the things you want in production data work.
 
 ---
 

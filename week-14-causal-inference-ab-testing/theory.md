@@ -1,16 +1,16 @@
-# Week 14: Theory — Causal Inference and A/B Testing
+# Week 14: Theory - Causal Inference and A/B Testing
 
 **Correlation is not causation.** You've heard it. You'll spend this week internalizing what to do instead.
 
-"Users who used feature X had 20% higher retention" — was it the feature, or the kind of user who chose it? "Revenue went up after the redesign" — was it the redesign, or the holiday? "Customers in tier A churn less" — is tier causing retention, or are loyal customers self-selecting into tier A?
+"Users who used feature X had 20% higher retention" - was it the feature, or the kind of user who chose it? "Revenue went up after the redesign" - was it the redesign, or the holiday? "Customers in tier A churn less" - is tier causing retention, or are loyal customers self-selecting into tier A?
 
 This week is the toolkit for actually answering "what caused what":
 
-- **Randomized experiments (A/B tests)** — the gold standard
-- **Observational adjustment** — when you can't randomize: propensity matching, IPW, diff-in-differences
-- **The vocabulary** — confounder, mediator, collider, why mishandling each breaks your analysis
+- **Randomized experiments (A/B tests)** - the gold standard
+- **Observational adjustment** - when you can't randomize: propensity matching, IPW, diff-in-differences
+- **The vocabulary** - confounder, mediator, collider, why mishandling each breaks your analysis
 
-By the end you can design a defensible A/B test, read an A/B result honestly, and apply observational adjustment when randomization isn't possible — without falling for the standard mistakes.
+By the end you can design a defensible A/B test, read an A/B result honestly, and apply observational adjustment when randomization isn't possible - without falling for the standard mistakes.
 
 ---
 
@@ -38,11 +38,11 @@ Randomization is much more reliable. Adjustment is harder but sometimes the only
 
 ## Part 2: Random assignment is everything
 
-In an A/B test, you flip a coin per user (or per session, or per device — the **randomization unit**) to decide treatment or control.
+In an A/B test, you flip a coin per user (or per session, or per device - the **randomization unit**) to decide treatment or control.
 
 If randomization is real, the two groups have **the same distribution of every other variable**: age, geography, prior behavior, device type, everything observable AND unobservable. The only systematic difference is the treatment.
 
-The average difference in outcomes between groups, then, is causal — caused by treatment.
+The average difference in outcomes between groups, then, is causal - caused by treatment.
 
 This is why A/B tests are powerful: **they eliminate confounding by design**, not by guess. You don't need to know what variables matter; randomization handles all of them.
 
@@ -54,7 +54,7 @@ The minimum-viable A/B design has six components:
 
 1. **Hypothesis**: "Adding a recommendation widget increases purchase rate."
 2. **Primary metric**: purchase rate (binary: did/didn't purchase)
-3. **Randomization unit**: user (not session — users may revisit)
+3. **Randomization unit**: user (not session - users may revisit)
 4. **MDE (minimum detectable effect)**: smallest effect worth knowing about, e.g., 2% relative lift
 5. **Sample size**: from power analysis given MDE and current baseline
 6. **Duration / stopping rule**: pre-specified, NOT "I'll stop when it's significant"
@@ -107,21 +107,21 @@ You check the test daily; when it shows p < 0.05, you stop. Problem: the **proba
 
 Fixes:
 
-- **Don't peek** — pre-specify duration; analyze once at the end
-- **Sequential testing** — methods (Sequential probability ratio, mSPRT, bayesian-with-priors) that explicitly correct for repeated looks
-- **Group-sequential designs** — pre-specified interim analyses with adjusted thresholds
+- **Don't peek** - pre-specify duration; analyze once at the end
+- **Sequential testing** - methods (Sequential probability ratio, mSPRT, bayesian-with-priors) that explicitly correct for repeated looks
+- **Group-sequential designs** - pre-specified interim analyses with adjusted thresholds
 
 Most modern experimentation platforms (Optimizely, GrowthBook, Statsig, Eppo) handle this with sequential testing built in. **If you're rolling your own, learn the methods or pre-commit to a fixed window.**
 
 ### Sample Ratio Mismatch (SRM)
 
-You assigned 50/50, but the data shows 47/53. **That's a bug** — your randomization didn't work as intended, or there's biased filtering downstream. ANY A/B test result with SRM is suspect; the difference might be entirely the SRM, not the treatment.
+You assigned 50/50, but the data shows 47/53. **That's a bug** - your randomization didn't work as intended, or there's biased filtering downstream. ANY A/B test result with SRM is suspect; the difference might be entirely the SRM, not the treatment.
 
 ```python
 from scipy.stats import binomtest
 result = binomtest(k=control_count, n=control_count + treatment_count, p=0.5)
 if result.pvalue < 0.001:
-    print("⚠️ SAMPLE RATIO MISMATCH — debug randomization before trusting results")
+    print("⚠️ SAMPLE RATIO MISMATCH - debug randomization before trusting results")
 ```
 
 Test for SRM **first** before analyzing the primary metric.
@@ -132,18 +132,18 @@ Users react to anything new ("hey, what's that?"); old habits stick ("ugh, where
 
 ### Cherry-picking metrics
 
-You measured 5 metrics; one is significant. Multiple comparisons (week 13) — **pre-specify the primary metric** before launching.
+You measured 5 metrics; one is significant. Multiple comparisons (week 13) - **pre-specify the primary metric** before launching.
 
 ### Spillover / network effects
 
-A user in treatment influences a user in control (marketplaces, social networks, B2B teams). Standard A/B math fails because SUTVA — the assumption that one unit's treatment doesn't affect another's outcome — is broken.
+A user in treatment influences a user in control (marketplaces, social networks, B2B teams). Standard A/B math fails because SUTVA - the assumption that one unit's treatment doesn't affect another's outcome - is broken.
 
 Three remedies, in order of how much they cost to set up:
 - **Cluster randomization.** Randomize entire groups (cities, friend-groups, B2B accounts) instead of users. The cluster is the unit of independence. Cheap to implement if your product has natural clusters.
 - **Geo-experiments.** A specific cluster-randomization: pick a set of metro areas, randomize treatment by metro. Standard at Uber, Lyft, DoorDash for marketplace experiments because the spillover is geographically bounded.
 - **Switchback testing.** Same population, but treatment flips on/off on a schedule (e.g., 30-min windows). Estimate the effect from on-vs-off windows. Used when even geo-randomization doesn't break the spillover. Requires longer runs and careful handling of carryover effects.
 
-For deeper treatment see Kohavi et al. *Trustworthy Online Controlled Experiments* ch. 22 — naive user-randomization on a marketplace product will systematically under- or over-estimate the effect depending on the spillover sign.
+For deeper treatment see Kohavi et al. *Trustworthy Online Controlled Experiments* ch. 22 - naive user-randomization on a marketplace product will systematically under- or over-estimate the effect depending on the spillover sign.
 
 ### Simpson's paradox lurking
 
@@ -151,7 +151,7 @@ The overall result is a fake summary of opposite-direction segment results. Alwa
 
 ---
 
-### CUPED — the free 30% sample size reduction
+### CUPED - the free 30% sample size reduction
 
 **Controlled-experiment Using Pre-Existing Data** is the single highest-leverage technique in modern industry A/B testing. The idea: a user's pre-experiment outcome (last 30 days of revenue, page views, whatever) is a strong predictor of their during-experiment outcome. Regress the during-experiment metric on the pre-experiment metric, take the residual, then run your A/B test on the residual. This **reduces variance by 30-50%**, which means **30-50% fewer users for the same MDE**.
 
@@ -165,7 +165,7 @@ model = smf.ols("y ~ T + y_pre", data=df).fit()
 print(model.summary())   # coefficient on T is the CUPED-adjusted treatment effect
 ```
 
-That's it. Every modern A/B platform (Statsig, Eppo, GrowthBook, Optimizely) implements CUPED. The catches: (1) you need a pre-experiment metric correlated with the outcome — if not, no variance reduction; (2) the covariate must be measured *before* randomization (otherwise you re-introduce confounding).
+That's it. Every modern A/B platform (Statsig, Eppo, GrowthBook, Optimizely) implements CUPED. The catches: (1) you need a pre-experiment metric correlated with the outcome - if not, no variance reduction; (2) the covariate must be measured *before* randomization (otherwise you re-introduce confounding).
 
 > 💡 **Practical impact**: if your standard A/B test needs 200k users per group, CUPED can land you at ~120k. For products running dozens of experiments per quarter, that's the difference between "we ran 5 experiments this quarter" and "we ran 12."
 
@@ -201,11 +201,11 @@ print(f"relative lift: {lift_relative:+.2%}")
 print(f"p-value: {p_value:.4f}")
 ```
 
-The CI is more useful than the p-value. A CI of `[+1%, +3%]` is much more informative than "p = 0.02" — it tells you the effect could be small but is unlikely to be zero.
+The CI is more useful than the p-value. A CI of `[+1%, +3%]` is much more informative than "p = 0.02" - it tells you the effect could be small but is unlikely to be zero.
 
 ### Bayesian A/B
 
-Frequentist A/B testing answers "is the effect non-zero?" Bayesian A/B answers **"what's the probability treatment is better?"** — usually more decision-useful.
+Frequentist A/B testing answers "is the effect non-zero?" Bayesian A/B answers **"what's the probability treatment is better?"** - usually more decision-useful.
 
 ```python
 from scipy import stats
@@ -224,7 +224,7 @@ For small experiments where frequentist p-values mislead, Bayesian gives more ho
 
 ---
 
-## Part 6: Observational adjustment — when you can't randomize
+## Part 6: Observational adjustment - when you can't randomize
 
 Sometimes you can't run an A/B test:
 
@@ -240,7 +240,7 @@ The toolkit for causal claims without randomization:
 For each treated unit, find an untreated unit with similar covariates. Compare outcomes within matched pairs.
 
 ```
-1. Fit a model: P(treated | X) — the propensity score
+1. Fit a model: P(treated | X) - the propensity score
 2. For each treated unit, find untreated unit(s) with similar propensity
 3. Compute average outcome difference within matches
 ```
@@ -311,7 +311,7 @@ Example: ice cream sales (T) and shark attacks (Y). Confounder Z = summer.
 
 T affects Y through Z. Adjusting Z removes part of the causal effect.
 
-Example: T = "click ad", Z = "visited landing page", Y = "purchased". Adjusting for Z would tell you "what's the effect of the ad NOT through the landing page" — usually not what you want.
+Example: T = "click ad", Z = "visited landing page", Y = "purchased". Adjusting for Z would tell you "what's the effect of the ad NOT through the landing page" - usually not what you want.
 
 **Don't adjust for mediators when estimating total effect.** Do adjust when decomposing direct vs indirect.
 
@@ -319,7 +319,7 @@ Example: T = "click ad", Z = "visited landing page", Y = "purchased". Adjusting 
 
 Z is affected by both. Adjusting Z **creates a spurious correlation** between T and Y.
 
-Example: T = talent, Y = beauty, Z = "is a successful actor." Among successful actors, talent and beauty are negatively correlated — because you needed at least one to succeed. Adjusting for "successful actor" creates a false negative correlation.
+Example: T = talent, Y = beauty, Z = "is a successful actor." Among successful actors, talent and beauty are negatively correlated - because you needed at least one to succeed. Adjusting for "successful actor" creates a false negative correlation.
 
 **Never adjust for colliders.**
 
@@ -382,4 +382,4 @@ In [lab.md](lab.md) you'll:
 - Identify confounders, mediators, colliders in a worked example
 - Write the A/B test result the way it should be communicated
 
-By end of week 14 you can run defensible experiments and adjust observational data when randomization isn't possible — without committing the standard sins.
+By end of week 14 you can run defensible experiments and adjust observational data when randomization isn't possible - without committing the standard sins.

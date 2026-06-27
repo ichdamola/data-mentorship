@@ -9,7 +9,7 @@ By the end of this week you'll be able to:
 - Encode categoricals correctly: one-hot, ordinal, target, hashing, embeddings (the last as preview for week 12)
 - Build **time-window features** ("user's avg purchase in last 30 days") without time-leakage
 - Build **aggregation features** at multiple grains (customer / customer-month / customer-category)
-- Detect and prevent **data leakage** — the bug that makes your val accuracy 99% in dev and 60% in prod
+- Detect and prevent **data leakage** - the bug that makes your val accuracy 99% in dev and 60% in prod
 - Use sklearn `Pipeline` and feature-store patterns for reproducibility
 - Recognize when to stop engineering and let the model handle it
 
@@ -29,10 +29,10 @@ uv add scikit-learn category-encoders xgboost lightgbm
 
 | Resource | Why | Time |
 |---|---|---|
-| [Kaggle — Feature Engineering Bookcamp](https://www.kaggle.com/learn/feature-engineering) | The fast track | 90 min |
+| [Kaggle - Feature Engineering Bookcamp](https://www.kaggle.com/learn/feature-engineering) | The fast track | 90 min |
 | [scikit-learn Pipelines](https://scikit-learn.org/stable/modules/compose.html) | The right way to ship features | 45 min |
-| [Chip Huyen — Designing ML Systems (ch. 5)](https://huyenchip.com/books/) | The leakage chapter | 60 min |
-| [Tecton — point-in-time correctness](https://www.tecton.ai/blog/time-travel-in-ml-the-key-to-avoiding-data-leakage/) | The feature-store framing | 30 min |
+| [Chip Huyen - Designing ML Systems (ch. 5)](https://huyenchip.com/books/) | The leakage chapter | 60 min |
+| [Tecton - point-in-time correctness](https://www.tecton.ai/blog/time-travel-in-ml-the-key-to-avoiding-data-leakage/) | The feature-store framing | 30 min |
 
 ## 💡 What you should already know
 

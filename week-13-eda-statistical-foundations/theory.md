@@ -1,8 +1,8 @@
-# Week 13: Theory — EDA and Statistical Foundations
+# Week 13: Theory - EDA and Statistical Foundations
 
-You've cleaned data (04-08), enriched it (09-12), and now someone wants insights. This is where most data work breaks down: **the analyst opens a notebook, runs `df.describe()`, makes a histogram, and ships a number.** That number is wrong as often as not — distributions misread, confidence intervals ignored, Simpson's paradox lurking.
+You've cleaned data (04-08), enriched it (09-12), and now someone wants insights. This is where most data work breaks down: **the analyst opens a notebook, runs `df.describe()`, makes a histogram, and ships a number.** That number is wrong as often as not - distributions misread, confidence intervals ignored, Simpson's paradox lurking.
 
-This week is **EDA done seriously** — the moves that separate the engineers who know what their data says from the ones who guess. Plus the statistical foundations to back honest claims: bootstrap (when parametric assumptions fail), permutation tests (when t-tests don't apply), and the common sins (p-hacking, multiple comparisons, Simpson's paradox).
+This week is **EDA done seriously** - the moves that separate the engineers who know what their data says from the ones who guess. Plus the statistical foundations to back honest claims: bootstrap (when parametric assumptions fail), permutation tests (when t-tests don't apply), and the common sins (p-hacking, multiple comparisons, Simpson's paradox).
 
 ---
 
@@ -19,7 +19,7 @@ The classic Tukey framing: **"Far better an approximate answer to the right ques
 What EDA isn't:
 
 - A statistical test (those come *after* EDA)
-- A causal claim ("X caused Y" — that's week 14)
+- A causal claim ("X caused Y" - that's week 14)
 - A production deliverable on its own ("here's a chart" without the question or method is a story, not analysis)
 
 ---
@@ -56,7 +56,7 @@ The first hour produces **questions, not answers**. Write them down.
 
 ---
 
-## Part 3: Distribution shapes — read them visually
+## Part 3: Distribution shapes - read them visually
 
 `mean` and `std` are summaries; **the histogram is the truth**. Five shapes to recognize:
 
@@ -72,7 +72,7 @@ Plot the **log scale** when in doubt; many "normal-looking" distributions are ac
 
 ### The Q-Q plot
 
-When you need to know "is this *actually* normal?" — a quantile-quantile plot is faster than a Shapiro-Wilk test and more interpretable:
+When you need to know "is this *actually* normal?" - a quantile-quantile plot is faster than a Shapiro-Wilk test and more interpretable:
 
 ```python
 import scipy.stats as stats
@@ -83,9 +83,9 @@ Points on the diagonal → normal. Curve away from the line → tells you exactl
 
 ---
 
-## Part 4: The bootstrap — confidence intervals when assumptions fail
+## Part 4: The bootstrap - confidence intervals when assumptions fail
 
-For most parametric tests (t-test, ANOVA, linear regression CIs), the assumption is: **the sampling distribution of the statistic is approximately normal**. This is often false in practice — heavy tails, small samples, non-linear estimators.
+For most parametric tests (t-test, ANOVA, linear regression CIs), the assumption is: **the sampling distribution of the statistic is approximately normal**. This is often false in practice - heavy tails, small samples, non-linear estimators.
 
 The bootstrap fixes this in a way that works for almost any statistic:
 
@@ -108,12 +108,12 @@ def bootstrap_ci(data, statistic, n_iter=10_000, alpha=0.05, method="BCa"):
 ```
 
 > ℹ️ **Which bootstrap method?** Three flavors:
-> - **Basic (reverse percentile)** — works when the bootstrap distribution is roughly symmetric.
-> - **Percentile** — fast and intuitive. Undercoverage for skewed statistics (medians, ratios, correlations) — heavy-tailed medians in particular have known poor coverage with this method.
-> - **BCa** (bias-corrected, accelerated) — **recommended default**. Corrects for bias and skew in the bootstrap distribution. SciPy implements it via `method="BCa"`.
-> - **Bootstrap-t** — useful when SE is easy to compute analytically.
+> - **Basic (reverse percentile)** - works when the bootstrap distribution is roughly symmetric.
+> - **Percentile** - fast and intuitive. Undercoverage for skewed statistics (medians, ratios, correlations) - heavy-tailed medians in particular have known poor coverage with this method.
+> - **BCa** (bias-corrected, accelerated) - **recommended default**. Corrects for bias and skew in the bootstrap distribution. SciPy implements it via `method="BCa"`.
+> - **Bootstrap-t** - useful when SE is easy to compute analytically.
 >
-> Sample size matters: under ~100 samples, no bootstrap CI is trustworthy. For a 95% CI on the median of a heavy-tailed distribution, BCa is the right choice — the percentile method can silently undercover.
+> Sample size matters: under ~100 samples, no bootstrap CI is trustworthy. For a 95% CI on the median of a heavy-tailed distribution, BCa is the right choice - the percentile method can silently undercover.
 
 **Computational cost**: 10k iterations × a few microseconds each → seconds. Worth it for any non-trivial estimate you're going to report.
 
@@ -121,7 +121,7 @@ Efron's 1979 paper introduced this. It's one of the most consequential statistic
 
 ---
 
-## Part 5: Permutation tests — non-parametric hypothesis testing
+## Part 5: Permutation tests - non-parametric hypothesis testing
 
 When you want to test "is the difference between group A and group B significant?" without assuming normality:
 
@@ -184,7 +184,7 @@ Stratified:   Treatment A is worse than B in subgroup X
               Treatment A is worse than B in subgroup Y
 ```
 
-This happens when the subgroups have very different baseline rates AND the treatments are unevenly distributed across them. The classic example: UC Berkeley admissions in the 1970s — overall favored men, but within each department, favored women.
+This happens when the subgroups have very different baseline rates AND the treatments are unevenly distributed across them. The classic example: UC Berkeley admissions in the 1970s - overall favored men, but within each department, favored women.
 
 The fix:
 
@@ -200,15 +200,15 @@ The fix: **think carefully about who's in your sample and who isn't.** Often the
 
 ### Regression to the mean
 
-If you select on a high or low value, the next observation is closer to the mean. "The top 10% of last month's reps are doing worse this month!" — they were probably lucky last month.
+If you select on a high or low value, the next observation is closer to the mean. "The top 10% of last month's reps are doing worse this month!" - they were probably lucky last month.
 
 The fix: **select once, measure independently.** Or use difference-in-differences (week 14).
 
 ---
 
-## Part 7: Effect size — beyond p-values
+## Part 7: Effect size - beyond p-values
 
-A p-value answers "is the effect zero?" — almost always, no. At enough sample size, anything is significantly non-zero.
+A p-value answers "is the effect zero?" - almost always, no. At enough sample size, anything is significantly non-zero.
 
 The better question: **how big is the effect?**
 
@@ -273,7 +273,7 @@ A common failure: **the analyst keeps exploring**, the stakeholder keeps waiting
 |---|---|
 | `df.describe()` only; never plotting | Mean / std lie about non-Gaussian distributions |
 | Using t-test on heavily skewed data | Wrong p-values |
-| Computing CIs without stating the method | "± something" — what something? |
+| Computing CIs without stating the method | "± something" - what something? |
 | Reporting p-value without effect size | Statistical noise looks meaningful |
 | Stratification ignored | Simpson's paradox unnoticed |
 | "Eyeballing" significance from charts | Even experts are fooled by random noise |
@@ -301,4 +301,4 @@ In [lab.md](lab.md) you'll:
 - Demonstrate Simpson's paradox with a worked example
 - Build a 1-page EDA summary template
 
-By end of week 13 you can pick up any new dataset and produce an honest, defensible understanding of what it says — without the common analytic sins.
+By end of week 13 you can pick up any new dataset and produce an honest, defensible understanding of what it says - without the common analytic sins.

@@ -6,7 +6,7 @@ Your data is more valuable when it's joined with the world's data. **Geocoding**
 
 By the end of this week you'll be able to:
 
-- Geocode at scale with **Nominatim** (open) and **Google/Mapbox** (paid) — and reason about cost
+- Geocode at scale with **Nominatim** (open) and **Google/Mapbox** (paid) - and reason about cost
 - Attach US Census demographics to any zip / tract / block group
 - Pull holiday calendars, weather, FX rates, public-company financials
 - Scrape with rate limits, retries, and robots.txt awareness

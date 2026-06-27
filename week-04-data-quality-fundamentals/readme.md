@@ -28,9 +28,9 @@ uv add pandera great-expectations soda-core ydata-profiling
 
 | Resource | Why | Time |
 |---|---|---|
-| [Great Expectations — Getting started](https://docs.greatexpectations.io/docs/oss/tutorials/getting_started_tutorial/) | The biggest tool in this space | 45 min |
+| [Great Expectations - Getting started](https://docs.greatexpectations.io/docs/oss/tutorials/getting_started_tutorial/) | The biggest tool in this space | 45 min |
 | [pandera docs](https://pandera.readthedocs.io/) | The pythonic alternative | 30 min |
-| [Chad Sanderson — Data Contracts 101](https://dataproducts.substack.com/p/data-contracts-101) | The framing | 30 min |
+| [Chad Sanderson - Data Contracts 101](https://dataproducts.substack.com/p/data-contracts-101) | The framing | 30 min |
 | [Soda Core docs](https://docs.soda.io/soda-core/overview.html) | SQL-native alternative | 30 min |
 
 ## 💡 What you should already know

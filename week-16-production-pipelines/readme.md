@@ -1,4 +1,4 @@
-# Week 16: Production Data Pipelines — Capstone
+# Week 16: Production Data Pipelines - Capstone
 
 ## 🎯 What you'll learn
 
@@ -37,8 +37,8 @@ uv add apache-airflow
 | Resource | Why | Time |
 |---|---|---|
 | [dbt Learn](https://www.getdbt.com/learn) | The transformation framework that ate the world | 2 hours |
-| [Dagster docs — Getting started](https://docs.dagster.io/getting-started) | Modern orchestrator with assets-as-first-class | 90 min |
-| [Reis + Housley — Fundamentals of Data Engineering](https://www.oreilly.com/library/view/fundamentals-of-data/9781098108298/) | The reference for the modern stack | 3 hours skim |
+| [Dagster docs - Getting started](https://docs.dagster.io/getting-started) | Modern orchestrator with assets-as-first-class | 90 min |
+| [Reis + Housley - Fundamentals of Data Engineering](https://www.oreilly.com/library/view/fundamentals-of-data/9781098108298/) | The reference for the modern stack | 3 hours skim |
 | [Bauplan / Tobiko on the lakehouse pattern](https://tobikodata.com/blog) | What's coming next | 30 min |
 
 ## 💡 What you should already know
@@ -47,4 +47,4 @@ uv add apache-airflow
 
 ---
 
-**Curriculum complete** — you've gone from raw CSV to a live production pipeline.
+**Curriculum complete** - you've gone from raw CSV to a live production pipeline.

@@ -1,4 +1,4 @@
-# Week 14: Lab — Run an A/B Test Without Lying to Yourself
+# Week 14: Lab - Run an A/B Test Without Lying to Yourself
 
 You'll design and analyze a simulated A/B test, demonstrate peeking inflation by simulation, detect SRM, do propensity score matching on observational data, and finish with a 1-page A/B result template.
 
@@ -23,7 +23,7 @@ np.random.seed(42)
 
 ---
 
-## Exercise 14.1 — Plan the experiment (power analysis)
+## Exercise 14.1 - Plan the experiment (power analysis)
 
 Baseline conversion is 10%. We want to detect a 2% relative lift.
 
@@ -49,11 +49,11 @@ n_5 = analysis.solve_power(
 print(f"sample size per group for 5% relative lift detection: {int(n_5):,}")
 ```
 
-**Run it.** At baseline 10% with a relative MDE of 2% (absolute lift 10.0% → 10.2%), `cohens_h ≈ 0.0066`, and the math gives roughly **n ≈ 180,000 per group**, not 80,000 — a 2% relative lift on a 10% baseline is a tiny absolute effect and demands a lot of samples. At 5% relative MDE you need around **n ≈ 30,000 per group**. Trust the number `solve_power` prints, not a memorized one — the MDE relationship is highly non-linear.
+**Run it.** At baseline 10% with a relative MDE of 2% (absolute lift 10.0% → 10.2%), `cohens_h ≈ 0.0066`, and the math gives roughly **n ≈ 180,000 per group**, not 80,000 - a 2% relative lift on a 10% baseline is a tiny absolute effect and demands a lot of samples. At 5% relative MDE you need around **n ≈ 30,000 per group**. Trust the number `solve_power` prints, not a memorized one - the MDE relationship is highly non-linear.
 
 ---
 
-## Exercise 14.2 — Run a clean A/B test (with simulation)
+## Exercise 14.2 - Run a clean A/B test (with simulation)
 
 ```python
 N_PER_GROUP = 80_000
@@ -88,7 +88,7 @@ You should see a positive lift with p < 0.05 most runs (you have 80% power for a
 
 ---
 
-## Exercise 14.3 — Demonstrate peeking inflation
+## Exercise 14.3 - Demonstrate peeking inflation
 
 What happens if you check daily and stop when p < 0.05?
 
@@ -116,7 +116,7 @@ def simulate_with_peeking(n_total, baseline_conv, true_lift, n_checks=10, n_sims
     return false_positives / n_sims
 
 # Side-by-side comparison: NO peeking (test only at the end) vs peeking 10×.
-# Without the baseline you have no calibration point — you'd just see one
+# Without the baseline you have no calibration point - you'd just see one
 # number and trust the prose.
 
 def simulate_no_peeking(n_total, baseline_conv, true_lift, n_sims=1000):
@@ -148,18 +148,18 @@ You should see the no-peeking FPR sit near 5% and the peeking FPR climb to 15-30
 
 ---
 
-## Exercise 14.4 — Detect SRM
+## Exercise 14.4 - Detect SRM
 
 ```python
 def srm_test(control_n, treatment_n, expected_ratio=0.5):
     result = stats.binomtest(k=control_n, n=control_n + treatment_n, p=expected_ratio)
     return result.pvalue
 
-# Good — both groups close to 50/50
+# Good - both groups close to 50/50
 good_p = srm_test(40_000, 40_000)
 print(f"clean A/B (40k vs 40k): SRM p = {good_p:.4f}")
 
-# Bad — 47/53 split (just 3pp off)
+# Bad - 47/53 split (just 3pp off)
 bad_p = srm_test(47_000, 53_000)
 print(f"SRM A/B (47k vs 53k):  SRM p = {bad_p:.2e}")
 
@@ -174,7 +174,7 @@ Run SRM test first on every real A/B. **No exception.**
 
 ---
 
-## Exercise 14.5 — Segment analysis
+## Exercise 14.5 - Segment analysis
 
 Even when overall result is clear, segments can flip.
 
@@ -206,11 +206,11 @@ for segment_name, segment_mask in [("iOS", is_ios == 1), ("Android", is_ios == 0
         print(f"  {segment_name}: {t_seg.mean() - c_seg.mean():+.4f} ({(t_seg.mean()/c_seg.mean() - 1):+.2%}, n_c={len(c_seg)}, n_t={len(t_seg)})")
 ```
 
-You'll see the overall ~+2.5% obscures iOS-only +5% and Android-flat. **Always segment-analyze top categories — typically OS, region, plan, country.**
+You'll see the overall ~+2.5% obscures iOS-only +5% and Android-flat. **Always segment-analyze top categories - typically OS, region, plan, country.**
 
 ---
 
-## Exercise 14.6 — Bayesian A/B as alternative
+## Exercise 14.6 - Bayesian A/B as alternative
 
 ```python
 # Same data as 14.2
@@ -220,7 +220,7 @@ treatment_successes = treatment.sum()
 treatment_failures = len(treatment) - treatment_successes
 
 # Beta priors. Beta(1,1) is the uniform prior (equivalent to 2 pseudo-obs);
-# Beta(0.5, 0.5) is the Jeffreys prior — the conventional default for
+# Beta(0.5, 0.5) is the Jeffreys prior - the conventional default for
 # proportions and what most A/B platforms use. At sample sizes >1000 they're
 # indistinguishable, but for very small studies pick deliberately.
 PRIOR_A, PRIOR_B = 1, 1   # uniform; switch to 0.5, 0.5 for Jeffreys
@@ -240,15 +240,15 @@ print(f"P(treatment > control) = {prob_treatment_better:.2%}")
 print(f"median lift: {median_lift:+.4f} (95% credible interval: [{ci_lo:+.4f}, {ci_hi:+.4f}])")
 ```
 
-You'll see something like "P(treatment > control) = 95%" — directly answering "is treatment better?" without invoking p-values.
+You'll see something like "P(treatment > control) = 95%" - directly answering "is treatment better?" without invoking p-values.
 
 For most stakeholders, this language ("there's a 95% probability treatment beats control") is more intuitive than frequentist p-values.
 
 ---
 
-## Exercise 14.7 — Propensity score matching on observational data
+## Exercise 14.7 - Propensity score matching on observational data
 
-You have historical data with "users who chose the new feature" vs "users who didn't" — no randomization.
+You have historical data with "users who chose the new feature" vs "users who didn't" - no randomization.
 
 ```python
 # Simulate: users self-selected
@@ -258,7 +258,7 @@ age = np.random.normal(40, 12, N)
 income = np.random.exponential(50000, N)
 prior_engagement = np.random.exponential(10, N)
 
-# Confounded treatment assignment — high-engagement users tend to opt-in
+# Confounded treatment assignment - high-engagement users tend to opt-in
 treatment_prob = stats.expit(-2 + 0.05 * prior_engagement + 0.01 * income / 10000)
 treated = np.random.binomial(1, treatment_prob)
 
@@ -290,18 +290,18 @@ df["propensity"] = propensity_model.predict_proba(covariates)[:, 1]
 # Nearest-neighbor matching: each treated unit → 1 control with closest propensity.
 # This is 1-NN matching WITH REPLACEMENT (a single high-propensity control can
 # be matched to many treated units). Documented method, but it loses the
-# independence assumption needed for a naive matched-pair t-test — for SEs,
+# independence assumption needed for a naive matched-pair t-test - for SEs,
 # bootstrap the whole pipeline.
 treated_df = df[df["treated"] == 1]
 control_df = df[df["treated"] == 0]
 
 # Common-support check: PSM is unidentified when the propensity ranges don't
 # overlap (e.g., some treated have propensity 0.95 but no control exceeds 0.5).
-print(f"propensity ranges — treated: [{treated_df['propensity'].min():.3f}, {treated_df['propensity'].max():.3f}]"
+print(f"propensity ranges - treated: [{treated_df['propensity'].min():.3f}, {treated_df['propensity'].max():.3f}]"
       f"  control: [{control_df['propensity'].min():.3f}, {control_df['propensity'].max():.3f}]")
 assert treated_df["propensity"].min() >= control_df["propensity"].min() and \
        treated_df["propensity"].max() <= control_df["propensity"].max(), \
-       "common-support violated — drop the off-support treated units before matching"
+       "common-support violated - drop the off-support treated units before matching"
 
 nbrs = NearestNeighbors(n_neighbors=1).fit(control_df[["propensity"]])
 distances, indices = nbrs.kneighbors(treated_df[["propensity"]])
@@ -318,7 +318,7 @@ matched_control_outcomes = control_df["outcome"].iloc[indices.flatten()].values[
 
 psm_effect = (matched_treated_outcomes - matched_control_outcomes).mean()
 
-# Bootstrap SE — the matched pairs aren't independent (with-replacement
+# Bootstrap SE - the matched pairs aren't independent (with-replacement
 # matching + caliper); naive t-test SEs are wrong. Bootstrap the whole pipeline.
 rng = np.random.default_rng(42)
 boot = []
@@ -346,11 +346,11 @@ print(f"TRUE effect:          {TRUE_EFFECT:+.4f}")
 
 PSM should produce an estimate much closer to TRUE_EFFECT than naive, and the bootstrap CI should cover TRUE_EFFECT. **Adjustment works when confounders are observed and the model captures them.**
 
-> 💡 **In production**, prefer `econml.dml.LinearDML` (double-ML) or `dowhy.CausalModel.estimate_effect(..., method_name="backdoor.propensity_score_matching")` — they handle common support, calipers, SEs, and sensitivity to propensity-model misspecification properly. The roll-your-own version above is for understanding the mechanics.
+> 💡 **In production**, prefer `econml.dml.LinearDML` (double-ML) or `dowhy.CausalModel.estimate_effect(..., method_name="backdoor.propensity_score_matching")` - they handle common support, calipers, SEs, and sensitivity to propensity-model misspecification properly. The roll-your-own version above is for understanding the mechanics.
 
 ---
 
-## Exercise 14.8 — Difference-in-Differences
+## Exercise 14.8 - Difference-in-Differences
 
 A retailer launches a new feature in NYC only. Compare NYC pre/post to other-city pre/post.
 
@@ -401,10 +401,10 @@ You should see the DiD recover ~+10. The parallel trends assumption was satisfie
 
 ---
 
-## Exercise 14.9 — Confounder vs collider example
+## Exercise 14.9 - Confounder vs collider example
 
 ```python
-# Re-seed for reproducibility — prior exercises consume the global RNG.
+# Re-seed for reproducibility - prior exercises consume the global RNG.
 np.random.seed(42)
 
 # Confounder: Z affects both T and Y
@@ -416,7 +416,7 @@ Y = 2 * T + 3 * Z + np.random.normal(0, 1, n)  # outcome depends on T and Z
 
 # Naive estimate
 print(f"NAIVE (no adjustment): {Y[T == 1].mean() - Y[T == 0].mean():+.3f}")
-# Will be biased — overestimates due to Z confounding
+# Will be biased - overestimates due to Z confounding
 
 # Adjusted via linear regression
 import statsmodels.formula.api as smf
@@ -452,7 +452,7 @@ You'll see:
 
 ---
 
-## Exercise 14.10 — 1-page A/B result template
+## Exercise 14.10 - 1-page A/B result template
 
 ```markdown
 # A/B test result: Add product recommendation widget
@@ -474,7 +474,7 @@ You'll see:
 |---|---|---|---|---|---|
 | Purchase rate (primary) | 10.2% | 10.5% | **+2.3% rel** | [+1.1%, +3.6%] | 0.003 |
 | Revenue per user | $4.20 | $4.30 | +2.4% rel | [+0.5%, +4.3%] | 0.02 |
-| Time on site (guardrail) | 4.2 min | 4.3 min | +0.1 min | — | — |
+| Time on site (guardrail) | 4.2 min | 4.3 min | +0.1 min | - | - |
 
 ## SRM check
 80,124 / 81,991 split → p = 0.42. ✓ No SRM detected.
@@ -519,7 +519,7 @@ This is the artifact stakeholders need. Notebook code lives behind it; the page 
 
 You can design an A/B test with appropriate sample size, analyze it without committing the cardinal sins (peeking, SRM-ignoring, cherry-picking), and communicate the result in a way that lands. You can adjust observational data using PSM and DiD when randomization isn't an option, and you understand why colliders are not safe to adjust.
 
-Week 15 takes the results and puts them in front of stakeholders — dashboards, visualizations, and the narrative that turns a chart into a decision.
+Week 15 takes the results and puts them in front of stakeholders - dashboards, visualizations, and the narrative that turns a chart into a decision.
 
 ---
 

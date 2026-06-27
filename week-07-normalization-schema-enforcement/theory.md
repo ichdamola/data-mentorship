@@ -1,4 +1,4 @@
-# Week 07: Theory — Normalization and Schema Enforcement
+# Week 07: Theory - Normalization and Schema Enforcement
 
 The data is clean enough that you trust the numbers (weeks 04-06). Now it needs to be **shaped** before downstream consumers can use it: consistent types, normalized representations, and **schemas enforced at every boundary**.
 
@@ -6,18 +6,18 @@ Without enforcement, every consumer reimplements the cleaning logic; every consu
 
 ---
 
-## Part 1: The two layers — types and semantics
+## Part 1: The two layers - types and semantics
 
 A column has two kinds of correctness:
 
-1. **Type correctness** — the value is a string, integer, boolean, datetime, decimal
-2. **Semantic correctness** — within its type, it follows the rules (ISO country code; positive integer; in {Manhattan, Bronx, ...}; etc.)
+1. **Type correctness** - the value is a string, integer, boolean, datetime, decimal
+2. **Semantic correctness** - within its type, it follows the rules (ISO country code; positive integer; in {Manhattan, Bronx, ...}; etc.)
 
 Type correctness comes from the file format (Parquet's schema) or the deserializer (Pydantic, pandera). Semantic correctness comes from your explicit checks (week 04). Both matter; conflating them is one of the rookie mistakes.
 
 ---
 
-## Part 2: Type coercion — the rules
+## Part 2: Type coercion - the rules
 
 Three responses to a value that doesn't match the declared type:
 
@@ -72,7 +72,7 @@ Use Polars's `str.to_datetime(...)` or pandas `pd.to_datetime(..., utc=True)`. C
 0044 20 7946 0958
 ```
 
-Canonical: **E.164** — `+[country code][number]`, no spaces or punctuation. Example: `+12125551234`.
+Canonical: **E.164** - `+[country code][number]`, no spaces or punctuation. Example: `+12125551234`.
 
 Use the **phonenumbers** library:
 
@@ -165,7 +165,7 @@ The Mars Climate Orbiter (1999) destroyed itself because of an unannounced unit 
 
 ---
 
-## Part 4: Schema frameworks — pandera, Pydantic, pyarrow
+## Part 4: Schema frameworks - pandera, Pydantic, pyarrow
 
 Three tools, three concerns:
 
@@ -175,7 +175,7 @@ Three tools, three concerns:
 | **pandera** | pandas / Polars DataFrames in memory | Schema + semantic checks; runs inline |
 | **Pydantic** | Single records / rows / dicts | Row-level parsing & validation; great for API input |
 
-### pyarrow — the storage-layer schema
+### pyarrow - the storage-layer schema
 
 When you write Parquet with explicit types, the schema is **embedded in the file**:
 
@@ -195,9 +195,9 @@ pa.parquet.write_table(table, "out.parquet")
 
 Anyone reading the Parquet gets the schema. No external definition file needed.
 
-### pandera — the dataframe-layer schema
+### pandera - the dataframe-layer schema
 
-We saw pandera in week 04. The headline pattern for week 07 — strict mode + coercion:
+We saw pandera in week 04. The headline pattern for week 07 - strict mode + coercion:
 
 ```python
 import pandera.polars as ppa
@@ -218,7 +218,7 @@ validated = schema.validate(df, lazy=True)
 
 `strict=True` rejects unexpected columns. Combined with `coerce=True` per-column, you get strong typing + early failure.
 
-### Pydantic — the row-level schema
+### Pydantic - the row-level schema
 
 For API responses, JSON streams, single-record validation:
 
@@ -247,7 +247,7 @@ For ingestion of API responses (week 03), Pydantic at the boundary is the cleane
 
 ---
 
-## Part 5: Schema evolution — the production reality
+## Part 5: Schema evolution - the production reality
 
 Pipelines run for years. Schemas change. Five kinds of change:
 
@@ -258,7 +258,7 @@ Pipelines run for years. Schemas change. Five kinds of change:
 | Rename column | Breaking | Alias old name for N versions, then drop |
 | Change type (widen) | Mostly safe | int32 → int64; bf16 → float32. Watch for narrowing reversal. |
 | Change type (narrow) | Breaking | varchar(50) → varchar(10) may truncate. Avoid. |
-| Change semantics | Disaster | Same column name, different meaning — this is the contract-violation case. Version your schema. |
+| Change semantics | Disaster | Same column name, different meaning - this is the contract-violation case. Version your schema. |
 
 The medallion architecture gives you space:
 

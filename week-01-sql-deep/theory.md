@@ -1,6 +1,6 @@
-# Week 01: Theory — SQL Deep
+# Week 01: Theory - SQL Deep
 
-Most engineers know enough SQL to be dangerous and not enough to be fast. The basic dialect — `SELECT`, `WHERE`, `JOIN`, `GROUP BY` — is taught everywhere. The senior dialect — **window functions, CTEs, qualify, lateral, recursive, gaps-and-islands, semi/anti** — is taught in scattered blog posts and learned by accident.
+Most engineers know enough SQL to be dangerous and not enough to be fast. The basic dialect - `SELECT`, `WHERE`, `JOIN`, `GROUP BY` - is taught everywhere. The senior dialect - **window functions, CTEs, qualify, lateral, recursive, gaps-and-islands, semi/anti** - is taught in scattered blog posts and learned by accident.
 
 This is the missing chapter. By the end you should be able to replace a 200-line pandas pipeline with 20 lines of SQL and not feel like you're losing anything.
 
@@ -65,12 +65,12 @@ Read top-to-bottom. Each CTE is a *named intermediate result*. Compare to the ne
 
 ### When CTEs don't help
 
-- Many CTEs and then one final `SELECT *` from the last — could just be a view
+- Many CTEs and then one final `SELECT *` from the last - could just be a view
 - Two-line queries where the CTE wrapping is more verbose than nested
 
 ### Materialized vs not
 
-Most warehouses (Postgres ≥12, DuckDB, Snowflake, BigQuery) **inline** CTEs by default — they're just named expressions, not materialized. You can force materialization with `WITH foo AS MATERIALIZED (...)` in Postgres / DuckDB.
+Most warehouses (Postgres ≥12, DuckDB, Snowflake, BigQuery) **inline** CTEs by default - they're just named expressions, not materialized. You can force materialization with `WITH foo AS MATERIALIZED (...)` in Postgres / DuckDB.
 
 For performance-sensitive queries: don't assume CTEs are free. Profile.
 
@@ -84,13 +84,13 @@ Memorize the four core join types (already known, included for completeness):
 |---|---|
 | `INNER JOIN` | Only rows matching on both sides |
 | `LEFT JOIN`  | All left rows + matching right rows (nulls if no match) |
-| `RIGHT JOIN` | Symmetric of LEFT — rarely used; left-flip instead |
+| `RIGHT JOIN` | Symmetric of LEFT - rarely used; left-flip instead |
 | `FULL OUTER JOIN` | All rows from both sides |
 | `CROSS JOIN` | Cartesian product (every row × every row) |
 
 The two **less common but high-value** ones:
 
-### Semi-join — "rows in A that have a match in B"
+### Semi-join - "rows in A that have a match in B"
 
 ```sql
 -- The textbook way (subquery)
@@ -104,7 +104,7 @@ SELECT * FROM customers SEMI JOIN orders USING (customer_id);
 
 Notice no duplication: even if a customer has 100 orders, `SEMI JOIN` returns the customer once. Unlike `INNER JOIN` which fan-outs.
 
-### Anti-join — "rows in A with NO match in B"
+### Anti-join - "rows in A with NO match in B"
 
 ```sql
 -- The textbook way
@@ -136,7 +136,7 @@ Same result, half the lines, and the planner generates a better plan.
 
 ## Part 4: Window functions (the headline content)
 
-A **window function** computes a value for each row using a "window" of related rows — without collapsing the rows into groups.
+A **window function** computes a value for each row using a "window" of related rows - without collapsing the rows into groups.
 
 The shape:
 
@@ -168,7 +168,7 @@ Three near-twins; the differences matter:
 | `RANK` | Ties get same rank; next rank skips: 1, 2, 2, 4, ... |
 | `DENSE_RANK` | Ties get same rank; next rank doesn't skip: 1, 2, 2, 3, ... |
 
-The single most common application: **"give me the latest record per customer"** — `ROW_NUMBER` with `ORDER BY date DESC`, then `WHERE rn = 1`.
+The single most common application: **"give me the latest record per customer"** - `ROW_NUMBER` with `ORDER BY date DESC`, then `WHERE rn = 1`.
 
 ### Aggregate window functions
 
@@ -198,7 +198,7 @@ SELECT
 FROM orders;
 ```
 
-The `ROWS BETWEEN ... AND ...` clause defines the **frame** — which rows in the partition count for this row's computation:
+The `ROWS BETWEEN ... AND ...` clause defines the **frame** - which rows in the partition count for this row's computation:
 
 | Frame spec | Meaning |
 |---|---|
@@ -209,7 +209,7 @@ The `ROWS BETWEEN ... AND ...` clause defines the **frame** — which rows in th
 
 **Tip:** `ROWS` counts rows; `RANGE` counts logical distance (calendar days, dollar amounts). For time-series with daily snapshots, both behave the same. For irregular data, use `RANGE`.
 
-### LAG and LEAD — neighbor access
+### LAG and LEAD - neighbor access
 
 ```sql
 SELECT
@@ -250,7 +250,7 @@ FROM orders;
 
 ---
 
-## Part 5: QUALIFY — filter on window functions
+## Part 5: QUALIFY - filter on window functions
 
 You can't put a window function in `WHERE` (logical-order reasons). The classical fix is a subquery; the modern fix is `QUALIFY`.
 
@@ -267,7 +267,7 @@ SELECT *,
 FROM orders
 QUALIFY rn = 1;
 
--- Even cleaner — inline the window function:
+-- Even cleaner - inline the window function:
 SELECT *
 FROM orders
 QUALIFY ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date DESC) = 1;
@@ -455,7 +455,7 @@ GROUP BY customer_id;
 PIVOT orders ON category USING SUM(amount) GROUP BY customer_id;
 ```
 
-The `PIVOT` syntax is a huge win when you don't know the columns up front — it learns them from the data.
+The `PIVOT` syntax is a huge win when you don't know the columns up front - it learns them from the data.
 
 ### Unpivot (wide → long)
 
@@ -526,7 +526,7 @@ WINDOW w AS (
 );
 ```
 
-Note the `WINDOW` clause — define a window once, reference it by name. Cleaner than repeating the spec inline.
+Note the `WINDOW` clause - define a window once, reference it by name. Cleaner than repeating the spec inline.
 
 ---
 
@@ -541,7 +541,7 @@ SQL isn't always the right tool. Drop to pandas/Polars (week 02) when:
 Stay in SQL when:
 
 - The data is bigger than RAM (DuckDB + Parquet handles 50 GB on a laptop)
-- The transformations are declarative — filtering, joining, aggregating, ranking
+- The transformations are declarative - filtering, joining, aggregating, ranking
 - You want the result auditable months later by anyone, not just by the person who wrote it
 - It'll run on a schedule against a real warehouse
 
@@ -555,7 +555,7 @@ In [lab.md](lab.md) you'll:
 
 - Set up DuckDB against the NYC taxi parquet
 - Solve 10 progressively harder analytics questions using window functions, CTEs, qualify, and gaps-and-islands
-- Build a cohort retention query (the stretch — and the one interviewers ask)
+- Build a cohort retention query (the stretch - and the one interviewers ask)
 - Compare query-plan output between a naive query and a window-function rewrite
 
 If Part 4 (window functions) was the densest section, that's by design. Reread it before opening the lab.

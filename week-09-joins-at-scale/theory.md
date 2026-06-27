@@ -1,4 +1,4 @@
-# Week 09: Theory — Joins at Scale
+# Week 09: Theory - Joins at Scale
 
 Joins look easy until **both tables are big**, the keys **don't match exactly**, the timestamps are **off by half a second**, or you're trying to join "anything within 500 meters of this point." This week is the practical reference for the join patterns nobody teaches you in SQL 101.
 
@@ -29,7 +29,7 @@ If you find yourself doing this often, materialize a normalized column rather th
 
 ---
 
-## Part 2: Broadcast vs shuffle — what's happening underneath
+## Part 2: Broadcast vs shuffle - what's happening underneath
 
 When you write `A JOIN B ON a.x = b.x`, the engine has two strategies:
 
@@ -54,13 +54,13 @@ The takeaway: **the engine picks for you, but the smaller side wins.** For inter
 
 ### When joins explode
 
-A subtle case: A has 1M rows; B has 1M rows; but the join key has **5 distinct values** with **200k rows each**. Each match produces `200k × 200k = 40B` rows per key — Cartesian per key. The right-shaped data plus the wrong-shaped join key kills you.
+A subtle case: A has 1M rows; B has 1M rows; but the join key has **5 distinct values** with **200k rows each**. Each match produces `200k × 200k = 40B` rows per key - Cartesian per key. The right-shaped data plus the wrong-shaped join key kills you.
 
 Detect by checking **key cardinality** before joining (week 04's profiling helps).
 
 ---
 
-## Part 3: Temporal joins — the "as-of" pattern
+## Part 3: Temporal joins - the "as-of" pattern
 
 The most-asked SQL question that classic SQL doesn't have a clean answer for:
 
@@ -108,7 +108,7 @@ FROM events e ASOF LEFT JOIN rates r
     AND e.ts >= r.effective_from
 ```
 
-Internally: the engine sorts both tables by `(by_keys, ts)` and walks them in O(n+m) — extremely fast.
+Internally: the engine sorts both tables by `(by_keys, ts)` and walks them in O(n+m) - extremely fast.
 
 ### Backward vs forward vs nearest
 
@@ -122,16 +122,16 @@ For most ML / analytics work: **backward** is what you want. "What did we know a
 
 ---
 
-## Part 4: Point-in-time correctness — the ML feature pitfall
+## Part 4: Point-in-time correctness - the ML feature pitfall
 
-When building training data for ML, you want features **as they would have been known at prediction time** — not their current values.
+When building training data for ML, you want features **as they would have been known at prediction time** - not their current values.
 
 Example: predicting churn. For an event at `2024-01-15`, you want:
 - `customer.plan` as of 2024-01-15, NOT customer's current plan
 - `customer.lifetime_orders_count` as of 2024-01-15
 - `account.last_login` as of 2024-01-15
 
-If you naively join the current dimension table, you've **leaked the future** into the training set. The model learns "users who churn have plan=Cancelled" — well, of course, that's the current state.
+If you naively join the current dimension table, you've **leaked the future** into the training set. The model learns "users who churn have plan=Cancelled" - well, of course, that's the current state.
 
 ### The fix: as-of joins on snapshots
 
@@ -150,7 +150,7 @@ For the lab you'll do this end-to-end. This is **the** feature-store pattern; we
 
 ---
 
-## Part 5: Geographic joins — point-in-polygon
+## Part 5: Geographic joins - point-in-polygon
 
 The two common geographic joins:
 
@@ -174,7 +174,7 @@ JOIN neighborhoods n
     ON ST_Contains(n.geometry, ST_Point(t.longitude, t.latitude));
 ```
 
-For 100k points × 100 polygons: a few seconds with the spatial index. Without spatial indexing, it's `points × polygons` — fine at this scale; crippling at 1M × 10k.
+For 100k points × 100 polygons: a few seconds with the spatial index. Without spatial indexing, it's `points × polygons` - fine at this scale; crippling at 1M × 10k.
 
 ### Nearest-neighbor
 
@@ -192,7 +192,7 @@ QUALIFY ROW_NUMBER() OVER (
 ) <= 5;
 ```
 
-This is `events × neighborhoods` — fine if neighborhoods are small. For larger reference tables, use a **spatial index**:
+This is `events × neighborhoods` - fine if neighborhoods are small. For larger reference tables, use a **spatial index**:
 
 ```sql
 CREATE INDEX nbh_idx ON neighborhoods USING RTREE (geometry);
@@ -206,8 +206,8 @@ A subtle gotcha: GPS uses **WGS84** (lat, lng in degrees). Distance computations
 
 Two ways to get correct distances:
 
-1. **`ST_Distance_Sphere`** or **`ST_DistanceSphere`** — spherical math, meters
-2. **Project to UTM** for short distances — meters, very fast
+1. **`ST_Distance_Sphere`** or **`ST_DistanceSphere`** - spherical math, meters
+2. **Project to UTM** for short distances - meters, very fast
 
 For NYC-scale work (<50km), spherical math is plenty accurate. For Trans-Atlantic distances, you might want a projected coordinate system.
 
@@ -220,7 +220,7 @@ Instead of comparing all polygons against all points, **discretize space into ce
 
 Workflow:
 1. Compute cell ID for points and polygons (polygons → multiple cells)
-2. Join on cell ID (string equality — fast)
+2. Join on cell ID (string equality - fast)
 3. Re-check with actual ST_Contains for boundary cells
 
 This trades exactness for speed; for ~1M-row geographic joins, often the only tractable approach.
@@ -246,7 +246,7 @@ The fancy version of as-of joins. Many engines (DuckDB, Postgres, BigQuery) opti
 For pandas/Polars: there's no native range join. You either:
 
 ```python
-# Polars — use join_asof + filter
+# Polars - use join_asof + filter
 result = (
     transactions
     .sort("ts")
@@ -259,7 +259,7 @@ Or drop to DuckDB for the range part. DuckDB embedded in a Polars pipeline is a 
 
 ---
 
-## Part 7: Cartesian joins — the silent killer
+## Part 7: Cartesian joins - the silent killer
 
 Symptoms:
 
@@ -273,7 +273,7 @@ Causes:
 |---|---|
 | **Forgot a join condition** | `JOIN` with no `ON` (some dialects allow this) |
 | **Many-to-many on the wrong key** | Both sides have the same key value many times |
-| **Implicit Cartesian via comma-join** | `FROM a, b WHERE ...` — same as cross join if WHERE filters are weak |
+| **Implicit Cartesian via comma-join** | `FROM a, b WHERE ...` - same as cross join if WHERE filters are weak |
 
 Defensive habit: **always check row counts** before and after joins.
 
@@ -310,7 +310,7 @@ FROM customers c LEFT JOIN orders o ON c.id = o.customer_id
 GROUP BY c.id;
 ```
 
-(Fan-out then collapse — wastes work.) Better:
+(Fan-out then collapse - wastes work.) Better:
 
 ```sql
 WITH order_agg AS (
@@ -385,7 +385,7 @@ The senior version: **always EXPLAIN, always check row counts**.
 
 ## Part 11: Connect to the rest of the curriculum
 
-- **Week 04 (quality)**: Validation on the joined table — pandera check that row count matches expectation (no surprise fan-out).
+- **Week 04 (quality)**: Validation on the joined table - pandera check that row count matches expectation (no surprise fan-out).
 - **Week 10 (external enrichment)**: All joins; geographic and temporal patterns from this week.
 - **Week 11 (features)**: Point-in-time correctness via as-of joins.
 - **Week 16 (pipelines)**: Joins materialized as dbt models.

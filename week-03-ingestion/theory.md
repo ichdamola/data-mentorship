@@ -1,4 +1,4 @@
-# Week 03: Theory — Ingestion
+# Week 03: Theory - Ingestion
 
 Data has to get into your stack from somewhere. **Vendor APIs, partner SFTP, file dumps, change-data-capture (CDC) streams, scrapes, webhooks, Kafka topics, message queues.** Each has its own failure modes, rate limits, schema-stability surprises, and political dynamics.
 
@@ -42,16 +42,16 @@ The single most consequential ingestion decision. The honest table:
 
 - **For analytics storage**: Parquet with snappy compression. Period.
 - **For nested API responses**: JSONL gzipped (one JSON object per line). Easy to parse incrementally.
-- **For "send to a stakeholder"**: CSV — it'll open in Excel and nobody will fight you.
+- **For "send to a stakeholder"**: CSV - it'll open in Excel and nobody will fight you.
 - **For inter-pipeline exchange**: Arrow IPC if both sides are Polars/pandas; otherwise Parquet.
 
 ### Why Parquet wins for analytics
 
 Three properties:
 
-1. **Columnar layout** — analytical queries read a few columns of many rows. Columnar storage reads only what's asked.
-2. **Compression by column** — each column compresses independently. A column of timestamps compresses much tighter than a row of mixed types.
-3. **Statistics and predicate pushdown** — Parquet stores per-row-group min/max/null counts. Query engines (DuckDB, Polars, Spark) use these to skip row groups entirely.
+1. **Columnar layout** - analytical queries read a few columns of many rows. Columnar storage reads only what's asked.
+2. **Compression by column** - each column compresses independently. A column of timestamps compresses much tighter than a row of mixed types.
+3. **Statistics and predicate pushdown** - Parquet stores per-row-group min/max/null counts. Query engines (DuckDB, Polars, Spark) use these to skip row groups entirely.
 
 For a 50 GB CSV with monthly date column, a query for "October 2024 only" reads ~50 GB. Same data in Parquet partitioned by year+month: ~500 MB.
 
@@ -59,12 +59,12 @@ The win is enormous. Always Parquet for analytics.
 
 ### Why CSV is the wrong default
 
-- **No types.** Everything is a string. Dates, numbers, booleans — all up to the reader's guess.
+- **No types.** Everything is a string. Dates, numbers, booleans - all up to the reader's guess.
 - **No nulls.** Empty string ≠ null in CSV.
 - **No schema.** Add a column and downstream parsers may crash.
 - **No nesting.** Arrays and objects don't exist.
 - **No compression** built in (you can gzip it but you've lost everything-format-y about CSV).
-- **No quoting consensus.** Embedded quotes, commas, newlines — every parser handles them differently.
+- **No quoting consensus.** Embedded quotes, commas, newlines - every parser handles them differently.
 
 The only legitimate reasons to choose CSV: human readability, Excel-friendliness, or you're forced to. Otherwise, Parquet.
 
@@ -72,7 +72,7 @@ The only legitimate reasons to choose CSV: human readability, Excel-friendliness
 
 ## Part 3: REST API patterns
 
-### Pagination — the three styles
+### Pagination - the three styles
 
 Almost every API paginates. The three common styles:
 
@@ -101,9 +101,9 @@ GET /v1/things?limit=100&cursor=def456
 # Response: { "data": [...], "next_cursor": null }
 ```
 
-Cursor pagination is **stable under inserts** — each cursor is bound to a specific position in the result. Stripe, GitHub, modern Twitter/X clones use this. Prefer it when offered.
+Cursor pagination is **stable under inserts** - each cursor is bound to a specific position in the result. Stripe, GitHub, modern Twitter/X clones use this. Prefer it when offered.
 
-### Rate limits and retries — `tenacity`
+### Rate limits and retries - `tenacity`
 
 ```python
 from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type
@@ -121,7 +121,7 @@ class TransientError(Exception):
 def fetch_page(client: httpx.Client, url: str, params: dict):
     resp = client.get(url, params=params, timeout=30)
     if resp.status_code == 429:
-        # Rate limited — backoff
+        # Rate limited - backoff
         raise TransientError(f"rate limited: {resp.headers.get('Retry-After')}")
     if 500 <= resp.status_code < 600:
         raise TransientError(f"server error: {resp.status_code}")
@@ -131,10 +131,10 @@ def fetch_page(client: httpx.Client, url: str, params: dict):
 
 What this gives you:
 
-- **Exponential backoff** (1s, 2s, 4s, 8s, 16s, 32s, 60s, 60s) — gentle retries that don't pound the upstream
-- **Retry on transient errors only** (429, 5xx) — don't retry 401, 403, 404
-- **Max 8 attempts** then give up — don't loop forever
-- **Reraise** — the caller still sees the failure for tracking
+- **Exponential backoff** (1s, 2s, 4s, 8s, 16s, 32s, 60s, 60s) - gentle retries that don't pound the upstream
+- **Retry on transient errors only** (429, 5xx) - don't retry 401, 403, 404
+- **Max 8 attempts** then give up - don't loop forever
+- **Reraise** - the caller still sees the failure for tracking
 
 For APIs that publish rate limits in headers (e.g., `X-RateLimit-Remaining`), use a **token bucket** to pre-emptively slow down rather than waiting for 429:
 
@@ -169,7 +169,7 @@ class TokenBucket:
 For long-running pulls (12-hour backfill, etc.), **persist progress**. The naive approach loses everything when the process crashes:
 
 ```python
-# BAD — losing all progress on a crash
+# BAD - losing all progress on a crash
 for cursor in walk_api():
     save_to_parquet(cursor)
 ```
@@ -204,7 +204,7 @@ while True:
     save_state(state)
 ```
 
-When this process crashes 9 hours in, restart resumes from where it stopped. **Atomic file replace (`os.replace`) is critical** — partial state writes are an entire class of bug.
+When this process crashes 9 hours in, restart resumes from where it stopped. **Atomic file replace (`os.replace`) is critical** - partial state writes are an entire class of bug.
 
 ---
 
@@ -215,9 +215,9 @@ If you're not pulling from a vendor's official API, you're **scraping**. The leg
 1. **Check `robots.txt`**. It's not legally binding everywhere but ignoring it is bad faith.
 2. **Rate limit yourself**. 1 request/sec is polite for most sites; some explicitly publish a target.
 3. **Set a `User-Agent`** that identifies you and provides a contact email.
-4. **Respect explicit anti-scrape signals** — CAPTCHAs, IP blocks, terms of service rejections.
+4. **Respect explicit anti-scrape signals** - CAPTCHAs, IP blocks, terms of service rejections.
 5. **Don't scrape personal data** without affirmative consent or a clear public-interest justification.
-6. **Cache aggressively** — re-running shouldn't multiply load on the source.
+6. **Cache aggressively** - re-running shouldn't multiply load on the source.
 
 The appsec-curriculum version of this conversation lives at [appsec-mentorship week 14](https://github.com/ichdamola/appsec-mentorship/tree/main/week-14-security-misconfig) (the "shodan.io" sidebar). The short version: **authorized = good; unauthorized = the law's lottery, and you're the prize.**
 
@@ -243,11 +243,11 @@ The three families:
 
 For Postgres, **logical replication** (since 10.x) and tools like **Debezium** ([Kafka Connect](https://debezium.io/)) or **PeerDB** make this turnkey. You set up a replication slot; events flow to the destination as they happen.
 
-For DuckDB-as-destination on a laptop, the practical pattern is **incremental snapshots** with `updated_at` watermarks — described in the lab.
+For DuckDB-as-destination on a laptop, the practical pattern is **incremental snapshots** with `updated_at` watermarks - described in the lab.
 
 ### The append-only data warehouse pattern
 
-Even with CDC, most modern warehouses **don't update rows in place**. They append. Each row gets a `(event_time, op, ...)` tuple — INSERT, UPDATE, DELETE all become inserts of new rows with appropriate operation flags. A view materializes the "current" state.
+Even with CDC, most modern warehouses **don't update rows in place**. They append. Each row gets a `(event_time, op, ...)` tuple - INSERT, UPDATE, DELETE all become inserts of new rows with appropriate operation flags. A view materializes the "current" state.
 
 Why: appends are cheap; updates on columnar storage are expensive; the audit log is a feature, not a cost.
 
@@ -255,37 +255,37 @@ This is the model dbt's "incremental" materialization plays well with, and the f
 
 ---
 
-## Part 6: Streaming — the lightest possible mention
+## Part 6: Streaming - the lightest possible mention
 
 Streaming ingestion (Kafka, Kinesis, PubSub) is a whole world. For this curriculum, the things to know:
 
-- **At-least-once vs exactly-once delivery** — most streams promise at-least-once; exactly-once is hard and slow
-- **Consumer offsets** — you commit "I read up to position X"; on restart you resume from there
-- **Partitions and ordering** — ordering is guaranteed within a partition, not across
-- **Schema registry** (Confluent Schema Registry, AWS Glue) — the contract layer between producer and consumer
+- **At-least-once vs exactly-once delivery** - most streams promise at-least-once; exactly-once is hard and slow
+- **Consumer offsets** - you commit "I read up to position X"; on restart you resume from there
+- **Partitions and ordering** - ordering is guaranteed within a partition, not across
+- **Schema registry** (Confluent Schema Registry, AWS Glue) - the contract layer between producer and consumer
 
 You probably won't write streaming code in this curriculum. You'll see it in [system-design-mentorship week 09](https://github.com/ichdamola/system-design-mentorship/tree/main/week-09-chat) and [week 11](https://github.com/ichdamola/system-design-mentorship/tree/main/week-11-distributed-counter) (chat and distributed counter). For data work in 2026, knowing the vocabulary is enough; building streaming is its own track.
 
 ---
 
-## Part 7: Ingestion architecture — bronze / silver / gold
+## Part 7: Ingestion architecture - bronze / silver / gold
 
 The modern best practice for organizing ingested data is the **medallion architecture** (Databricks's terminology, but everyone uses it):
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
-│  BRONZE — raw, append-only, never modified                     │
+│  BRONZE - raw, append-only, never modified                     │
 │  ────────                                                       │
 │  data/raw/api_source/2024-10-15/page_001.jsonl.gz              │
 │  data/raw/sftp_dump/customer_export_2024-10-15.csv             │
 │                                                                 │
 │  ↓                                                              │
-│  SILVER — cleaned, normalized, schema-enforced                  │
+│  SILVER - cleaned, normalized, schema-enforced                  │
 │  ────────                                                       │
 │  data/silver/customers.parquet  ← typed, validated              │
 │                                                                 │
 │  ↓                                                              │
-│  GOLD — modeled, aggregated, business-ready                     │
+│  GOLD - modeled, aggregated, business-ready                     │
 │  ─────                                                          │
 │  data/gold/fct_customer_revenue_daily.parquet                   │
 └────────────────────────────────────────────────────────────────┘
@@ -296,9 +296,9 @@ The modern best practice for organizing ingested data is the **medallion archite
 In practice this means:
 
 - Bronze paths are **partitioned by ingestion date** (and source if multiple)
-- Bronze files are **immutable** — once written, never changed
+- Bronze files are **immutable** - once written, never changed
 - Bronze includes a **`_ingested_at`** column (or filename) so you can detect late-arriving data
-- Bronze should **never feed dashboards directly** — always through silver
+- Bronze should **never feed dashboards directly** - always through silver
 
 Week 16's capstone builds exactly this structure with dbt + Dagster.
 
@@ -312,7 +312,7 @@ Topics that you'll encounter eventually but don't need to master now:
 |---|---|
 | Apache Beam / Dataflow | Streaming-heavy environments; replaced by Spark Streaming / Flink in most orgs |
 | Singer taps | Older "extract" framework; mostly replaced by Airbyte / Fivetran-as-SaaS |
-| Stitch / Fivetran (SaaS) | When time is more valuable than control — start with Airbyte (open) or buy |
+| Stitch / Fivetran (SaaS) | When time is more valuable than control - start with Airbyte (open) or buy |
 | dlt (data load tool) | Promising modern Python ingestion lib; worth a look once you've built your own |
 | Iceberg / Delta / Hudi (lakehouse formats) | Production data warehousing at scale; preview in week 16 |
 
@@ -326,7 +326,7 @@ In [lab.md](lab.md) you'll:
 - Store the raw responses as gzipped JSONL (bronze)
 - Convert that bronze JSONL to a typed Parquet (silver) and benchmark the size win
 - Build resumability with a checkpoint file
-- Try predicate pushdown on Parquet — measure the read-speed savings
+- Try predicate pushdown on Parquet - measure the read-speed savings
 - (Stretch) Set up Postgres logical replication into DuckDB
 
 By end of week 03 you can move data from anywhere into a clean, validated, queryable form on your laptop. That's the foundation everything else this curriculum builds on.

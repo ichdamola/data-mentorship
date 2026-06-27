@@ -10,7 +10,7 @@ By the end of this week you'll be able to:
 - Apply the visualization rules: **pre-attentive attributes, chart-type-to-question matching, the rule of 5**
 - Avoid the canonical sins: dual-axis charts that lie, 3D pies, rainbow color scales, axes that don't start at zero (or that should)
 - Write the **2-line headline + 3-bullet narrative** every dashboard needs at the top
-- Build a self-serve dashboard the team uses — not one that decays
+- Build a self-serve dashboard the team uses - not one that decays
 - Reason about **dashboard sprawl**: 200 charts nobody reads ≠ value
 
 ## 🧰 Lab setup
@@ -40,10 +40,10 @@ uv add streamlit plotly altair
 
 | Resource | Why | Time |
 |---|---|---|
-| [Cole Nussbaumer Knaflic — Storytelling with Data](https://www.storytellingwithdata.com/) | The reference | 2 hours skim |
-| [Few — Information Dashboard Design](https://www.amazon.com/Information-Dashboard-Design-At-Glance/dp/1938377001) | The canonical book | 90 min skim |
+| [Cole Nussbaumer Knaflic - Storytelling with Data](https://www.storytellingwithdata.com/) | The reference | 2 hours skim |
+| [Few - Information Dashboard Design](https://www.amazon.com/Information-Dashboard-Design-At-Glance/dp/1938377001) | The canonical book | 90 min skim |
 | [Metabase Learn](https://www.metabase.com/learn/) | Vendor docs that teach the concept | 60 min |
-| [Edward Tufte — The Visual Display of Quantitative Information](https://www.edwardtufte.com/tufte/books_vdqi) | The classic | as much as you want |
+| [Edward Tufte - The Visual Display of Quantitative Information](https://www.edwardtufte.com/tufte/books_vdqi) | The classic | as much as you want |
 
 ## 💡 What you should already know
 

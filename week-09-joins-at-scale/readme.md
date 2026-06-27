@@ -33,8 +33,8 @@ uv run python -c "import duckdb; duckdb.connect().install_extension('spatial')"
 |---|---|---|
 | [Polars as-of joins](https://docs.pola.rs/user-guide/transformations/joins/) | The modern API | 30 min |
 | [DuckDB Spatial extension](https://duckdb.org/docs/extensions/spatial) | The new way to do geo joins locally | 30 min |
-| [PostGIS — Geographic information for PostgreSQL](https://postgis.net/workshops/postgis-intro/) | The classical reference | 60 min |
-| [Feature stores — Tecton blog on point-in-time correctness](https://www.tecton.ai/blog/time-travel-in-ml-the-key-to-avoiding-data-leakage/) | Why this matters for ML | 30 min |
+| [PostGIS - Geographic information for PostgreSQL](https://postgis.net/workshops/postgis-intro/) | The classical reference | 60 min |
+| [Feature stores - Tecton blog on point-in-time correctness](https://www.tecton.ai/blog/time-travel-in-ml-the-key-to-avoiding-data-leakage/) | Why this matters for ML | 30 min |
 
 ## 💡 What you should already know
 

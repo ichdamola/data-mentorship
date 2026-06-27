@@ -1,4 +1,4 @@
-# Week 11: Theory — Feature Engineering
+# Week 11: Theory - Feature Engineering
 
 For tabular ML, **feature engineering still beats architecture**. XGBoost on well-engineered features routinely outperforms a deep neural network on raw inputs. Even in the LLM era, tabular fraud / churn / propensity models live and die by the features.
 
@@ -6,7 +6,7 @@ This week is the catalog of high-leverage patterns: **categorical encoding** (on
 
 ---
 
-## Part 1: The first principle — leakage is the enemy
+## Part 1: The first principle - leakage is the enemy
 
 The single most common bug in feature engineering: **using information that wouldn't have been available at prediction time**.
 
@@ -21,15 +21,15 @@ The pattern is always the same: a value that would not have been known **at the 
 
 Senior moves:
 
-- **Always set a `cutoff_ts` per row** — "what is the timestamp at which this prediction would have been made?" — and ensure every feature is derived from data at or before that cutoff.
-- **Compute aggregates over a defined `[cutoff - lookback, cutoff)` window** — not the full dataset.
+- **Always set a `cutoff_ts` per row** - "what is the timestamp at which this prediction would have been made?" - and ensure every feature is derived from data at or before that cutoff.
+- **Compute aggregates over a defined `[cutoff - lookback, cutoff)` window** - not the full dataset.
 - **Use point-in-time joins (week 09) for dimensional features**, never the current dimension table.
 
 This is one of the patterns the feature-store industry (Tecton, Feast, Hopsworks) exists to enforce.
 
 ---
 
-## Part 2: Categorical encoding — the four mainstream options
+## Part 2: Categorical encoding - the four mainstream options
 
 | Encoding | What | When |
 |---|---|---|
@@ -109,7 +109,7 @@ Lossy (collisions happen) but extremely fast, fixed memory, supports streaming. 
 
 ---
 
-## Part 3: Numeric features — the workhorse transformations
+## Part 3: Numeric features - the workhorse transformations
 
 | Transform | What | When |
 |---|---|---|
@@ -120,7 +120,7 @@ Lossy (collisions happen) but extremely fast, fixed memory, supports streaming. 
 | **Quantile binning** | Discretize into N buckets | Capture non-monotone relationships |
 | **Piecewise / splines** | Multiple linear segments | Linear models needing non-linearity |
 
-For **tree models**, scaling doesn't matter — splits are scale-invariant. For **linear models** / **NNs**, standardization matters a lot.
+For **tree models**, scaling doesn't matter - splits are scale-invariant. For **linear models** / **NNs**, standardization matters a lot.
 
 ### When transforms fight back
 
@@ -197,7 +197,7 @@ features = events.join_asof(
 )
 ```
 
-Returns the **state of the customer as known at event_ts** — no leakage by construction.
+Returns the **state of the customer as known at event_ts** - no leakage by construction.
 
 ---
 
@@ -261,7 +261,7 @@ df = df.with_columns(
 )
 ```
 
-This handles the fact that hour 23 and hour 0 are adjacent — not maximally far apart as integer encoding suggests. For linear models / NNs, cyclical encoding helps. For trees, integer hour is fine.
+This handles the fact that hour 23 and hour 0 are adjacent - not maximally far apart as integer encoding suggests. For linear models / NNs, cyclical encoding helps. For trees, integer hour is fine.
 
 ---
 

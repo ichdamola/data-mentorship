@@ -1,4 +1,4 @@
-# Week 12: Lab — Embed, Index, Search
+# Week 12: Lab - Embed, Index, Search
 
 You'll embed 50k product descriptions, build an HNSW index, run semantic dedup against your week 05 results, and finish with zero-shot classification of support tickets.
 
@@ -30,7 +30,7 @@ print(f"loaded {MODEL_NAME}, dim={model.get_sentence_embedding_dimension()}")
 
 ---
 
-## Exercise 12.1 — Embed a small batch
+## Exercise 12.1 - Embed a small batch
 
 ```python
 texts = [
@@ -56,16 +56,16 @@ for i in range(len(texts)):
 
 You should see:
 
-- AirPods Pro ≈ wireless earbuds (0.7+) — different words, same meaning
-- AirPods vs Galaxy Buds (0.5-0.6) — both wireless earbuds; brand differs
-- raincoat ≈ yellow umbrella (0.4-0.5) — both rain gear, weaker
+- AirPods Pro ≈ wireless earbuds (0.7+) - different words, same meaning
+- AirPods vs Galaxy Buds (0.5-0.6) - both wireless earbuds; brand differs
+- raincoat ≈ yellow umbrella (0.4-0.5) - both rain gear, weaker
 - blender ≈ smoothie blender (0.6+)
 
 **These are the kinds of matches rapidfuzz would have completely missed.**
 
 ---
 
-## Exercise 12.2 — Generate 50k synthetic products
+## Exercise 12.2 - Generate 50k synthetic products
 
 ```python
 import random
@@ -100,7 +100,7 @@ print(f"total products: {len(products_df):,}")
 
 ---
 
-## Exercise 12.3 — Batch embed at scale
+## Exercise 12.3 - Batch embed at scale
 
 ```python
 t0 = time.perf_counter()
@@ -120,7 +120,7 @@ On a laptop CPU: ~2-5k embeddings/sec → ~10-25s for 50k. With a GPU: ~50k/sec 
 
 ---
 
-## Exercise 12.4 — Build HNSW index, benchmark
+## Exercise 12.4 - Build HNSW index, benchmark
 
 ```python
 dim = embeddings.shape[1]
@@ -163,7 +163,7 @@ Sub-millisecond per query against 50k vectors. **This is the engine that powers 
 
 ---
 
-## Exercise 12.5 — Semantic dedup vs rapidfuzz
+## Exercise 12.5 - Semantic dedup vs rapidfuzz
 
 Compare semantic similarity dedup to week 05's rapidfuzz approach on the same products.
 
@@ -227,11 +227,11 @@ if only_embedding:
         print(f"  '{q}'  ↔  '{m}'")
 ```
 
-You should see embedding matching things rapidfuzz missed — synonyms, different brands of the same product type. **This is the semantic-vs-syntactic gap closing.**
+You should see embedding matching things rapidfuzz missed - synonyms, different brands of the same product type. **This is the semantic-vs-syntactic gap closing.**
 
 ---
 
-## Exercise 12.6 — Zero-shot classification of tickets
+## Exercise 12.6 - Zero-shot classification of tickets
 
 Take a small set of support tickets; classify them by embedding similarity to label prototypes.
 
@@ -246,7 +246,7 @@ labels = [
 label_embs = model.encode(labels, convert_to_numpy=True)
 
 tickets = [
-    "I was charged twice for my last order — please refund.",
+    "I was charged twice for my last order - please refund.",
     "My package was supposed to arrive yesterday and it's still not here.",
     "The product broke after one day of use, this is unacceptable.",
     "Can you add a feature to export my data?",
@@ -276,7 +276,7 @@ But for a first MVP, zero-shot embedding gets you 70-80% accuracy in 10 lines.
 
 ---
 
-## Exercise 12.7 — Store embeddings in Parquet
+## Exercise 12.7 - Store embeddings in Parquet
 
 ```python
 # Add embeddings as a list column
@@ -295,11 +295,11 @@ print(loaded.head(3))
 print(f"size on disk: {Path('data/silver/products_with_embeddings.parquet').stat().st_size / 1024 / 1024:.1f} MB")
 ```
 
-50k × 384 × 4 bytes ≈ **77 MB on disk for the embeddings alone**. The metadata (model name, version date) is critical — it's what saves you when you upgrade models in 6 months.
+50k × 384 × 4 bytes ≈ **77 MB on disk for the embeddings alone**. The metadata (model name, version date) is critical - it's what saves you when you upgrade models in 6 months.
 
 ---
 
-## Exercise 12.8 — Save HNSW index, reload
+## Exercise 12.8 - Save HNSW index, reload
 
 ```python
 # Persist for production / next session
@@ -319,7 +319,7 @@ The index file is binary, compact, and can be loaded into a production service. 
 
 ---
 
-## Exercise 12.9 (stretch) — Use Chroma as a higher-level vector DB
+## Exercise 12.9 (stretch) - Use Chroma as a higher-level vector DB
 
 For a more production-shaped path, swap HNSW for a real vector DB:
 
@@ -377,7 +377,7 @@ Chroma gives you metadata filtering, persistence, and a HTTP server out of the b
 
 You can take any text column, generate dense embeddings, index them for sub-millisecond search, do semantic dedup that closes the gap rapidfuzz can't, and run zero-shot classification with just label prototypes. Embeddings are now a column in your Parquet, with provenance metadata that survives model upgrades.
 
-For the rest of the curriculum (weeks 13-16: insights and production), embeddings become another tool in the kit — useful for fuzzy joins, clustering, semantic dashboards, and as a feature for ML models.
+For the rest of the curriculum (weeks 13-16: insights and production), embeddings become another tool in the kit - useful for fuzzy joins, clustering, semantic dashboards, and as a feature for ML models.
 
 Week 13 turns to insight generation: how to do EDA the right way, beyond `df.describe()`.
 

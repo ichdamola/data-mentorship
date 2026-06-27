@@ -1,8 +1,8 @@
-# Week 04: Theory — Data Quality Fundamentals
+# Week 04: Theory - Data Quality Fundamentals
 
 You ingested data in week 03. Now: is it any good?
 
-"Looks fine" doesn't scale. The senior practice is **measure quality explicitly, encode expectations as code, fail loudly when reality drifts.** That practice is called **data quality engineering**, and the modern tooling — Great Expectations, Soda, pandera — exists to make it routine.
+"Looks fine" doesn't scale. The senior practice is **measure quality explicitly, encode expectations as code, fail loudly when reality drifts.** That practice is called **data quality engineering**, and the modern tooling - Great Expectations, Soda, pandera - exists to make it routine.
 
 This week is the framework: profile to *understand* the data, validate to *guard* it, and contract to *negotiate* with the upstream team that produced it.
 
@@ -23,11 +23,11 @@ The standard taxonomy (every framework agrees on these, with minor wording diffe
 
 Memorize them. Every quality issue you'll diagnose maps to at least one.
 
-**Most failures are completeness or validity.** Accuracy is hardest to check (you need ground truth). Consistency and timeliness are systemic and often political. Uniqueness is the easy win — week 05's dedup work handles most cases.
+**Most failures are completeness or validity.** Accuracy is hardest to check (you need ground truth). Consistency and timeliness are systemic and often political. Uniqueness is the easy win - week 05's dedup work handles most cases.
 
 ---
 
-## Part 2: Profiling — understand before you validate
+## Part 2: Profiling - understand before you validate
 
 Profiling is the diagnostic phase: scan a dataset and produce a quality report. **You always profile first.** You can't write meaningful expectations about data you haven't characterized.
 
@@ -73,7 +73,7 @@ Returns one row per column with: name, type, min, max, average, std, q25, q50, q
 
 ---
 
-## Part 3: Validation — encode expectations as code
+## Part 3: Validation - encode expectations as code
 
 Profiling tells you what *is*. Validation tells you what *should be*.
 
@@ -172,7 +172,7 @@ SQL-native. Define checks in YAML; runs against any warehouse.
 
 Strengths:
 - Lives close to the warehouse
-- Checks are SQL — auditable by anyone who reads SQL
+- Checks are SQL - auditable by anyone who reads SQL
 - Excellent freshness/SLA features
 
 Weaknesses:
@@ -194,7 +194,7 @@ checks for nyc_trees:
 
 ### Picking
 
-For this curriculum we'll do hands-on with **pandera** (lightest, runs in-process) and **Great Expectations** (the incumbent — worth seeing). Soda is mentioned for context.
+For this curriculum we'll do hands-on with **pandera** (lightest, runs in-process) and **Great Expectations** (the incumbent - worth seeing). Soda is mentioned for context.
 
 ---
 
@@ -202,7 +202,7 @@ For this curriculum we'll do hands-on with **pandera** (lightest, runs in-proces
 
 A **data contract** is an explicit agreement between data producer and data consumer about schema, semantics, quality, and SLA.
 
-The historical default is **no contract** — producer changes a column type silently; consumer's pipeline breaks; meetings happen. The modern alternative:
+The historical default is **no contract** - producer changes a column type silently; consumer's pipeline breaks; meetings happen. The modern alternative:
 
 ```yaml
 # orders_contract.yml
@@ -240,7 +240,7 @@ sla:
 
 The contract is **version controlled, reviewed, tested**. Breaking changes get a deprecation window. Consumers know what to expect; producers know what they're on the hook for.
 
-This is the org-political part of data work. **Contracts don't magically appear** — someone has to sit down with the upstream team and negotiate. The book to read here is Chad Sanderson's writing on the topic.
+This is the org-political part of data work. **Contracts don't magically appear** - someone has to sit down with the upstream team and negotiate. The book to read here is Chad Sanderson's writing on the topic.
 
 ### Why this pattern is gaining adoption
 
@@ -257,7 +257,7 @@ Real pipelines run for years. Schemas evolve. The three things that can change:
 | Change | Severity | How to handle |
 |---|---|---|
 | **Add nullable column** | Safe | Just absorb it; old code keeps working |
-| **Add required column** | Breaking — backfill needed | Default value or backfill |
+| **Add required column** | Breaking - backfill needed | Default value or backfill |
 | **Remove column** | Breaking | Deprecate first, remove later |
 | **Rename column** | Breaking | Alias the old name during transition |
 | **Change type (widen)** | Mostly safe | int32 → int64 fine; string → date risky |
@@ -268,13 +268,13 @@ The **medallion architecture** (week 03 Part 7) gives you space to handle this g
 
 - Bronze accepts whatever comes in (typed permissively as strings if needed)
 - Silver enforces the *current* schema; explicitly fail or quarantine on drift
-- Gold is downstream-safe — silver's enforcement protects gold consumers
+- Gold is downstream-safe - silver's enforcement protects gold consumers
 
 For data formats:
 
 - **Avro** has built-in schema evolution rules (default values, aliases)
 - **Parquet** silently allows column additions; everything else is your problem
-- **Iceberg / Delta** add full evolution support on top of Parquet — this is why lakehouse formats are gaining
+- **Iceberg / Delta** add full evolution support on top of Parquet - this is why lakehouse formats are gaining
 
 ---
 
@@ -284,10 +284,10 @@ When validation fails, what do you do?
 
 | Strategy | When |
 |---|---|
-| **Hard fail** — refuse to publish | Critical pipelines; better to be late than wrong (finance, billing) |
-| **Quarantine** — set bad rows aside; publish the rest | Most pipelines; bad rows go to `_quarantine/` for review |
-| **Repair** — fix the bad rows automatically | Only when you trust the repair rule completely (e.g., uppercase a country code) |
-| **Alert + publish** — log the problem, publish anyway | Dashboards / reports where stale data is worse than slightly-wrong data |
+| **Hard fail** - refuse to publish | Critical pipelines; better to be late than wrong (finance, billing) |
+| **Quarantine** - set bad rows aside; publish the rest | Most pipelines; bad rows go to `_quarantine/` for review |
+| **Repair** - fix the bad rows automatically | Only when you trust the repair rule completely (e.g., uppercase a country code) |
+| **Alert + publish** - log the problem, publish anyway | Dashboards / reports where stale data is worse than slightly-wrong data |
 
 A good default: **quarantine** + alert. Don't poison downstream with bad rows; don't block publishing when 0.01% of rows are weird.
 
@@ -307,19 +307,19 @@ if len(df_bad) > len(df) * 0.05:  # > 5% bad
 
 ---
 
-## Part 8: Observability — beyond expectations
+## Part 8: Observability - beyond expectations
 
-Expectations catch **anticipated** problems. **Observability** catches the rest — unexpected drifts, slow leaks, anomalies you didn't think to write a test for.
+Expectations catch **anticipated** problems. **Observability** catches the rest - unexpected drifts, slow leaks, anomalies you didn't think to write a test for.
 
 The observability stack at minimum tracks:
 
-- **Row count over time** — sudden drops or spikes are usually breakage
-- **Null rate per column over time** — gradual upticks signal upstream rot
-- **Distinct count over time** — a categorical going from 10 values to 100 is a smell
-- **Numeric distribution drift** — KL divergence or PSI between today's mean/std and last week's
-- **Freshness** — time since last successful load
+- **Row count over time** - sudden drops or spikes are usually breakage
+- **Null rate per column over time** - gradual upticks signal upstream rot
+- **Distinct count over time** - a categorical going from 10 values to 100 is a smell
+- **Numeric distribution drift** - KL divergence or PSI between today's mean/std and last week's
+- **Freshness** - time since last successful load
 
-The modern tools here: **Monte Carlo**, **Datafold**, **Bigeye** (commercial); **Re_data**, **Elementary** (open). For this curriculum we'll roll a tiny version — append metric rows to a `_metrics` table on each run.
+The modern tools here: **Monte Carlo**, **Datafold**, **Bigeye** (commercial); **Re_data**, **Elementary** (open). For this curriculum we'll roll a tiny version - append metric rows to a `_metrics` table on each run.
 
 ---
 
@@ -364,4 +364,4 @@ In [lab.md](lab.md) you'll:
 - Add a tiny observability table that tracks row count and null rate per run
 - (Stretch) Write a Soda YAML spec for the same dataset
 
-By end of week 04 you have the validation muscle to trust your own pipelines. Weeks 05-08 build on top — every cleaning operation will be paired with a validation check that says "I cleaned what I expected to clean."
+By end of week 04 you have the validation muscle to trust your own pipelines. Weeks 05-08 build on top - every cleaning operation will be paired with a validation check that says "I cleaned what I expected to clean."

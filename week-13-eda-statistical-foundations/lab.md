@@ -1,4 +1,4 @@
-# Week 13: Lab — EDA, Honestly
+# Week 13: Lab - EDA, Honestly
 
 You'll do a full first-hour EDA, diagnose distribution shapes, compute bootstrap CIs and permutation tests, demonstrate Simpson's paradox, and produce a 1-page summary you'd send to a stakeholder.
 
@@ -32,7 +32,7 @@ curl -o data/yellow_tripdata_2024-01.parquet \
 
 ---
 
-## Exercise 13.1 — First-hour scan
+## Exercise 13.1 - First-hour scan
 
 ```python
 PATH = "data/yellow_tripdata_2024-01.parquet"
@@ -56,7 +56,7 @@ You should see ~3M rows, 19 columns, types, ranges. Note any null_percentage tha
 
 ---
 
-## Exercise 13.2 — Distribution shapes
+## Exercise 13.2 - Distribution shapes
 
 Pick four columns with different shapes and plot them.
 
@@ -84,7 +84,7 @@ You should see:
 
 - `fare_amount`: heavy right tail; log makes it look ~normal
 - `trip_distance`: also heavy right tail
-- `tip_amount`: bimodal — many zeros (cash payers; week 1 lesson) + continuous positive
+- `tip_amount`: bimodal - many zeros (cash payers; week 1 lesson) + continuous positive
 - `passenger_count`: discrete with a few modes (1, 2, then long tail)
 
 **Mean ± std lies about all of these.** Always plot before summarizing.
@@ -105,7 +105,7 @@ The raw is curved (not normal); the log is much closer to the diagonal. **`fare_
 
 ---
 
-## Exercise 13.3 — Bootstrap CIs
+## Exercise 13.3 - Bootstrap CIs
 
 Compute a 95% CI for the median trip_distance using the bootstrap.
 
@@ -149,7 +149,7 @@ You should see:
 
 ---
 
-## Exercise 13.4 — Permutation test
+## Exercise 13.4 - Permutation test
 
 Is the average tip percentage on credit-card trips different between weekdays and weekends?
 
@@ -171,7 +171,7 @@ print(f"observed difference: {(weekday.mean() - weekend.mean())*100:.3f} percent
 
 def permutation_test(a, b, n_iter=2000):
     """Permutation test on the FULL samples. A permutation test's whole
-    point is that it uses every observation — sub-sampling here would
+    point is that it uses every observation - sub-sampling here would
     throw away power for no reason (the inner loop is O(n) per iter,
     seconds on millions of rows)."""
     observed = a.mean() - b.mean()
@@ -190,7 +190,7 @@ p, observed = permutation_test(weekday, weekend)
 print(f"\npermutation test p-value: {p:.4f}")
 print(f"observed difference: {observed*100:.3f} pp")
 
-# Effect size — Cohen's d (sample-weighted pooled SD; works for any n_a, n_b)
+# Effect size - Cohen's d (sample-weighted pooled SD; works for any n_a, n_b)
 n_a, n_b = len(weekday), len(weekend)
 pooled_var = ((n_a - 1) * weekday.var(ddof=1) + (n_b - 1) * weekend.var(ddof=1)) / (n_a + n_b - 2)
 pooled_sd = np.sqrt(pooled_var)
@@ -202,7 +202,7 @@ You'll likely see p < 0.05 (statistical significance) but Cohen's d ≈ 0.05 (ti
 
 ---
 
-## Exercise 13.5 — Demonstrate Simpson's paradox
+## Exercise 13.5 - Demonstrate Simpson's paradox
 
 Build a synthetic example to feel the trap.
 
@@ -215,7 +215,7 @@ Build a synthetic example to feel the trap.
 
 n_per_cell = 1000
 
-# Restaurant 1 — mostly in busy city A; satisfaction is ~7 in A, ~8 in B
+# Restaurant 1 - mostly in busy city A; satisfaction is ~7 in A, ~8 in B
 r1_city_a = pd.DataFrame({
     "restaurant": "R1", "city": "A",
     "satisfaction": np.random.normal(7.0, 1.0, size=n_per_cell*9),  # 9000 customers
@@ -225,7 +225,7 @@ r1_city_b = pd.DataFrame({
     "satisfaction": np.random.normal(8.0, 1.0, size=n_per_cell),     # 1000 customers
 })
 
-# Restaurant 2 — mostly in sleepy city B; satisfaction is ~7.5 in A, ~8.5 in B
+# Restaurant 2 - mostly in sleepy city B; satisfaction is ~7.5 in A, ~8.5 in B
 r2_city_a = pd.DataFrame({
     "restaurant": "R2", "city": "A",
     "satisfaction": np.random.normal(7.5, 1.0, size=n_per_cell),
@@ -300,7 +300,7 @@ The fix: stratify; report subgroup means; flag the city/restaurant imbalance.
 
 ---
 
-## Exercise 13.6 — Power analysis
+## Exercise 13.6 - Power analysis
 
 For an A/B test, how many samples do you need to detect a 5% effect at 80% power?
 
@@ -325,16 +325,16 @@ You should see:
 - d = 0.2: ~395 per group
 - d = 0.5: ~64 per group
 
-**Plan the experiment size before launching.** Underpowered experiments are common — and produce both false positives (random noise) and false negatives (real effects missed).
+**Plan the experiment size before launching.** Underpowered experiments are common - and produce both false positives (random noise) and false negatives (real effects missed).
 
 ---
 
-## Exercise 13.7 — A 1-page summary
+## Exercise 13.7 - A 1-page summary
 
 For your stakeholder, produce a tight one-page Markdown document:
 
 ```markdown
-# NYC taxi trip analysis — Jan 2024
+# NYC taxi trip analysis - Jan 2024
 
 ## Headline
 On credit-card trips, **weekend tippers leave 0.15 percentage points lower tips on average** (statistically significant; effect size trivial). No actionable difference.
@@ -356,9 +356,9 @@ On credit-card trips, **weekend tippers leave 0.15 percentage points lower tips 
 - 95% bootstrap CI for difference: [−0.27, −0.03] pp
 
 ## Notes & caveats
-- Cash trips (~25% of total) excluded — they don't record tips
+- Cash trips (~25% of total) excluded - they don't record tips
 - "Tip %" here = tip_amount / fare_amount (not including tolls / surcharges)
-- January 2024 only — seasonal patterns not assessed
+- January 2024 only - seasonal patterns not assessed
 
 ## Recommended next step
 - This signal isn't worth acting on
@@ -369,7 +369,7 @@ Save it as `eda_report.md` in your project. **This is the artifact stakeholders 
 
 ---
 
-## Exercise 13.8 (stretch) — Multiple comparisons
+## Exercise 13.8 (stretch) - Multiple comparisons
 
 You run 20 t-tests at α=0.05. How many false positives do you expect by chance?
 
@@ -406,7 +406,7 @@ mean, p95 = simulate_tests(20)
 print(f"\nSimulated: average {mean:.2f} false positives in 20 tests (p95 = {int(p95)})")
 ```
 
-You should see ~1 false positive on average — exactly what 20 × 5% predicts. **This is why "I found something significant on the 20th test" should never be the headline.**
+You should see ~1 false positive on average - exactly what 20 × 5% predicts. **This is why "I found something significant on the 20th test" should never be the headline.**
 
 ---
 
@@ -427,7 +427,7 @@ You should see ~1 false positive on average — exactly what 20 × 5% predicts. 
 
 You can read distributions visually, compute uncertainty without parametric assumptions, run hypothesis tests honestly with effect-size reporting, and recognize Simpson's paradox before it embarrasses you. You can produce a 1-page summary that lands the finding without burying the caveats.
 
-Week 14 takes the next step — from "we found a correlation" to "we measured a cause." A/B testing and observational causal inference.
+Week 14 takes the next step - from "we found a correlation" to "we measured a cause." A/B testing and observational causal inference.
 
 ---
 

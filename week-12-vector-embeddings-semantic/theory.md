@@ -1,6 +1,6 @@
-# Week 12: Theory — Vector Embeddings and Semantic Enrichment
+# Week 12: Theory - Vector Embeddings and Semantic Enrichment
 
-Through week 11 you encoded data with **structured features**: one-hot, ordinal, target-encoded, hashed. They work — but they hit a ceiling on **text columns**, especially long ones (product descriptions, support tickets, contract clauses). rapidfuzz (week 08) catches typos and reorderings; it doesn't catch "Apple AirPods Pro" matching "wireless earphones from Apple."
+Through week 11 you encoded data with **structured features**: one-hot, ordinal, target-encoded, hashed. They work - but they hit a ceiling on **text columns**, especially long ones (product descriptions, support tickets, contract clauses). rapidfuzz (week 08) catches typos and reorderings; it doesn't catch "Apple AirPods Pro" matching "wireless earphones from Apple."
 
 **Embeddings** are the modern answer: convert text (or image, or audio) into a dense vector that captures semantic similarity. Two items with related meaning land near each other in the vector space, regardless of surface differences.
 
@@ -35,11 +35,11 @@ Higher dimensions = better fidelity but bigger storage. For 1M rows × 1024 dim 
 
 ### Where to look for the right model
 
-The **MTEB leaderboard** ([huggingface.co/spaces/mteb/leaderboard](https://huggingface.co/spaces/mteb/leaderboard)) ranks embedding models on retrieval, classification, clustering. **Sort by your task; pick the smallest model in the top 5.** Bigger isn't always better — overshooting costs latency and memory.
+The **MTEB leaderboard** ([huggingface.co/spaces/mteb/leaderboard](https://huggingface.co/spaces/mteb/leaderboard)) ranks embedding models on retrieval, classification, clustering. **Sort by your task; pick the smallest model in the top 5.** Bigger isn't always better - overshooting costs latency and memory.
 
 ---
 
-## Part 2: sentence-transformers — the open standard
+## Part 2: sentence-transformers - the open standard
 
 The library most people use:
 
@@ -98,9 +98,9 @@ For a tabular pipeline with up to ~10M rows: **Parquet with array columns**. Bey
 
 ## Part 4: Approximate nearest neighbor (ANN) search
 
-For "find the 10 most similar items in this 1M-item table", you can't do exhaustive cosine — that's 1M comparisons per query.
+For "find the 10 most similar items in this 1M-item table", you can't do exhaustive cosine - that's 1M comparisons per query.
 
-The fix: **ANN indexes** — data structures that return approximate top-k in O(log n) per query.
+The fix: **ANN indexes** - data structures that return approximate top-k in O(log n) per query.
 
 | Algorithm | Lib | Strength |
 |---|---|---|
@@ -168,7 +168,7 @@ Compared to week 05's rapidfuzz:
 | rapidfuzz | "Apple Inc." vs "Apple Inc" (typos, order) | "Apple Inc." vs "Apple Corporation" (semantic) |
 | Embeddings | "Apple Inc." vs "Apple Corporation" (semantic) | "j0hn smitH" vs "John Smith" (heavy normalization needed) |
 
-The right answer is often **both** — rapidfuzz for the typo cases, embeddings for the semantic cases.
+The right answer is often **both** - rapidfuzz for the typo cases, embeddings for the semantic cases.
 
 ---
 
@@ -223,7 +223,7 @@ Tools: **LangChain**, **LlamaIndex**, **Haystack** wrap this stack. For learning
 
 For image / text joint embedding:
 
-- **CLIP** (OpenAI) and **SigLIP** (Google) — text and images in the same vector space
+- **CLIP** (OpenAI) and **SigLIP** (Google) - text and images in the same vector space
 - Search for "red sneakers" against an image catalog; the text query finds the right images
 
 ```python
@@ -240,7 +240,7 @@ For e-commerce product search, visual search, content moderation. Beyond this cu
 
 ---
 
-## Part 9: Embed vs prompt — the modern decision
+## Part 9: Embed vs prompt - the modern decision
 
 For "classify these support tickets," you have two options:
 
@@ -262,7 +262,7 @@ The economics shift yearly as models get cheaper. Re-evaluate periodically.
 
 ---
 
-## Part 10: Vector storage — when to use a vector DB
+## Part 10: Vector storage - when to use a vector DB
 
 For laptop-scale work (<10M vectors), **Parquet + FAISS/hnswlib in-memory** is plenty.
 

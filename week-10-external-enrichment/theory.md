@@ -1,4 +1,4 @@
-# Week 10: Theory — External Enrichment
+# Week 10: Theory - External Enrichment
 
 Your data is more valuable when joined with the world's data. **Geocoding** an address turns "123 Main St" into a lat/lng that joins to neighborhood demographics. **Census attaches** demographic features to any US zip / tract. **Weather, FX rates, holiday calendars** provide context that turns a flat fact table into a richly featured one.
 
@@ -41,7 +41,7 @@ The free public Nominatim instance has hard rules:
 
 - **Maximum 1 request per second**
 - **Set a User-Agent that identifies you** (with contact)
-- **Cache aggressively** — re-running the same query is bad faith
+- **Cache aggressively** - re-running the same query is bad faith
 - **For bulk jobs (>1k addresses)**: self-host Nominatim via Docker
 
 ```python
@@ -64,7 +64,7 @@ For a small one-shot job (< 1000 addresses), Nominatim with `time.sleep(1)` is f
 
 ## Part 3: Census demographics
 
-The US Census provides one of the world's richest free demographic datasets — household income, education, race, age distribution, etc. — at varying granularities:
+The US Census provides one of the world's richest free demographic datasets - household income, education, race, age distribution, etc. - at varying granularities:
 
 | Granularity | Population | Use |
 |---|---|---|
@@ -117,11 +117,11 @@ For commercial-grade alternatives that aggregate many of these into clean APIs, 
 
 ---
 
-## Part 5: Scraping — the ethical and legal landscape
+## Part 5: Scraping - the ethical and legal landscape
 
 If a vendor doesn't have an API, you're scraping. The senior engineer's checklist:
 
-1. **Check `robots.txt`** at `<site>/robots.txt`. It's a request, not a contract — but ignoring it is bad faith and weakens any "we acted in good faith" defense.
+1. **Check `robots.txt`** at `<site>/robots.txt`. It's a request, not a contract - but ignoring it is bad faith and weakens any "we acted in good faith" defense.
 2. **Rate limit yourself**. 1 request/second is universally polite; some sites publish lower limits in robots.txt.
 3. **Identify yourself**. Set a `User-Agent: contact@yourorg.com (...)`. Site operators can ask you to stop; if they can't reach you, they'll just block your IPs.
 4. **Cache aggressively**. The first scrape is necessary; the 50th re-run is hostile.
@@ -142,7 +142,7 @@ The appsec-mentorship version of this is at [appsec-mentorship week 14](https://
 
 ## Part 6: Holidays, calendars, business days
 
-A common analytic gotcha: "revenue is down on Tuesday" — but it's Tuesday after a 3-day weekend. The fix: enrich with holiday context.
+A common analytic gotcha: "revenue is down on Tuesday" - but it's Tuesday after a 3-day weekend. The fix: enrich with holiday context.
 
 The **`holidays`** library covers ~100 countries; one line per attribute:
 
@@ -195,7 +195,7 @@ class APICache:
         """)
 
     def get_or_compute(self, input_str: str, compute_fn, *, fn_name: str, fn_version: str = "v1"):
-        # Key by (input, fn_name, fn_version) — otherwise calls to the same
+        # Key by (input, fn_name, fn_version) - otherwise calls to the same
         # cache from two different enrichment functions (e.g. geocoding via
         # Nominatim vs Google Maps) collide on identical inputs and return
         # the wrong cached result. Bump fn_version when the upstream

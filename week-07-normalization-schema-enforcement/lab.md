@@ -1,4 +1,4 @@
-# Week 07: Lab — Build the Schema Firewall
+# Week 07: Lab - Build the Schema Firewall
 
 You'll start from a deliberately messy CSV (broken dates, three currencies, three phone formats, mixed booleans) and end with a typed, validated Parquet that downstream consumers can rely on.
 
@@ -24,7 +24,7 @@ from pathlib import Path
 
 ---
 
-## Exercise 7.1 — Generate the messy CSV
+## Exercise 7.1 - Generate the messy CSV
 
 ```python
 messy_csv = """order_id,customer_email,amount,currency,phone,country,created_at,active
@@ -61,7 +61,7 @@ This is what real ingest data looks like.
 
 ---
 
-## Exercise 7.2 — Pydantic for row-level parsing
+## Exercise 7.2 - Pydantic for row-level parsing
 
 ```python
 from typing import Literal
@@ -111,7 +111,7 @@ class OrderRow(BaseModel):
         # Country
         country = raw["country"].strip().upper()
 
-        # Created_at — explicit list of formats; refuse to guess
+        # Created_at - explicit list of formats; refuse to guess
         ts_str = raw["created_at"].strip()
         ts = None
         for fmt in [
@@ -130,7 +130,7 @@ class OrderRow(BaseModel):
         if ts is None:
             raise ValueError(f"unparseable date: {ts_str!r}")
 
-        # Boolean — exhaustive list
+        # Boolean - exhaustive list
         active_raw = str(raw["active"]).strip().lower()
         true_values = {"true", "t", "yes", "y", "1"}
         false_values = {"false", "f", "no", "n", "0"}
@@ -175,7 +175,7 @@ You should see ~6 clean, ~2 quarantined (eve.com isn't a valid email; -100 is ne
 
 ---
 
-## Exercise 7.3 — Write canonical Parquet with an explicit schema
+## Exercise 7.3 - Write canonical Parquet with an explicit schema
 
 ```python
 schema = pa.schema([
@@ -219,7 +219,7 @@ You should see your exact pyarrow schema. **Anyone who reads this file gets the 
 
 ---
 
-## Exercise 7.4 — Pandera schema with strict + coerce
+## Exercise 7.4 - Pandera schema with strict + coerce
 
 ```python
 import pandera.polars as ppa
@@ -238,7 +238,7 @@ schema_pa = DataFrameSchema(
     strict=True,  # reject unexpected columns
 )
 
-# Validate — should pass on the clean data we just produced
+# Validate - should pass on the clean data we just produced
 df_silver = pl.read_parquet("data/silver/orders.parquet")
 df_silver_subset = df_silver.drop("created_at")   # pandera + polars: timestamp checks slightly different
 
@@ -250,7 +250,7 @@ except ppa.errors.SchemaErrors as e:
     print(e.failure_cases.head())
 ```
 
-Now break it on purpose — add a row with `currency='XYZ'` and watch pandera fail:
+Now break it on purpose - add a row with `currency='XYZ'` and watch pandera fail:
 
 ```python
 bad = df_silver_subset.head(1).with_columns(currency=pl.lit("XYZ"))
@@ -266,7 +266,7 @@ You should see the XYZ row called out with the failed check.
 
 ---
 
-## Exercise 7.5 — The schema firewall as a CI gate
+## Exercise 7.5 - The schema firewall as a CI gate
 
 Wrap validation in a function you'd run as part of every pipeline:
 
@@ -300,7 +300,7 @@ Put this in your CI / pipeline at the bronze → silver boundary. **The schema f
 
 ---
 
-## Exercise 7.6 — Schema evolution: v1 → v2 migration
+## Exercise 7.6 - Schema evolution: v1 → v2 migration
 
 Suppose your v1 schema had a single `amount` column (in dollars as a float), and v2 standardizes on `amount_cents` (integer). Build the migration.
 
@@ -332,7 +332,7 @@ In a real org, you keep the migration as a versioned SQL/dbt model. Old consumer
 
 ---
 
-## Exercise 7.7 — Multi-currency handling
+## Exercise 7.7 - Multi-currency handling
 
 A common real-world question: "store the dollar equivalent or the local amount?"
 
@@ -365,7 +365,7 @@ print(df_with_usd.select("order_id", "amount_cents", "currency", "usd_equivalent
 
 ---
 
-## Exercise 7.8 — Format formatted output for humans
+## Exercise 7.8 - Format formatted output for humans
 
 For dashboards and reports, format with locale awareness:
 
@@ -388,7 +388,7 @@ ord-003: €45.50 (country GB)
 
 ---
 
-## Exercise 7.9 — One-page summary of the firewall
+## Exercise 7.9 - One-page summary of the firewall
 
 Document your pipeline. Save this as `docs/schema.md`:
 
@@ -422,7 +422,7 @@ Document your pipeline. Save this as `docs/schema.md`:
 
 ### Migration from v1
 - `amount` (float, dollars) → `amount_cents` (int): `cast(amount * 100 as bigint)`
-- New required field: `phone_e164` — backfill from `phone` column via phonenumbers library
+- New required field: `phone_e164` - backfill from `phone` column via phonenumbers library
 
 ### Owner
 - Team: data-mentorship-lab
@@ -451,7 +451,7 @@ This is the artifact that goes in the repo, gets reviewed in PRs, and answers qu
 
 You built the schema firewall: bronze in (messy), silver out (typed, validated, documented). Downstream consumers get a Parquet with embedded schema, a pandera spec for validation, and a markdown doc that explains every column. That stack is the senior 2026 default for any production data pipeline.
 
-Week 08 brings text cleaning + fuzzy matching — the same discipline applied to free-form text fields like product descriptions and support tickets.
+Week 08 brings text cleaning + fuzzy matching - the same discipline applied to free-form text fields like product descriptions and support tickets.
 
 ---
 

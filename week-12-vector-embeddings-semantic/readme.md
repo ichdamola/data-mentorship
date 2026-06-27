@@ -2,7 +2,7 @@
 
 ## 🎯 What you'll learn
 
-Use modern embedding models — **sentence-transformers**, **OpenAI / Voyage / Cohere embeddings**, **CLIP for images** — as a new kind of column in your data. The data-engineering side of the LLM era.
+Use modern embedding models - **sentence-transformers**, **OpenAI / Voyage / Cohere embeddings**, **CLIP for images** - as a new kind of column in your data. The data-engineering side of the LLM era.
 
 By the end of this week you'll be able to:
 
@@ -31,7 +31,7 @@ uv add sentence-transformers hnswlib chromadb pillow
 |---|---|---|
 | [Sentence-Transformers docs](https://www.sbert.net/) | The default open embedding library | 30 min |
 | [MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard) | Which embedding model is best for what | 20 min |
-| [Pinecone — Vector index basics](https://www.pinecone.io/learn/vector-database/) | The mental model (vendor-specific but well-written) | 30 min |
+| [Pinecone - Vector index basics](https://www.pinecone.io/learn/vector-database/) | The mental model (vendor-specific but well-written) | 30 min |
 | [FAISS wiki](https://github.com/facebookresearch/faiss/wiki) | The library the field is built on | 30 min skim |
 
 ## 💡 What you should already know

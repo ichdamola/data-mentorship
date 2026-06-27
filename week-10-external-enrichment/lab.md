@@ -1,4 +1,4 @@
-# Week 10: Lab — Enrich a Customer Table
+# Week 10: Lab - Enrich a Customer Table
 
 You'll geocode addresses through Nominatim with proper rate limiting + cache, look up Census tracts, attach demographics, enrich with weather + holidays, and end with a fully enriched customer table.
 
@@ -27,7 +27,7 @@ If you want to use the **US Census API** in Exercise 10.4, register for a free k
 
 ---
 
-## Exercise 10.1 — Build the SQLite-backed enrichment cache
+## Exercise 10.1 - Build the SQLite-backed enrichment cache
 
 ```python
 class APICache:
@@ -73,7 +73,7 @@ You should see an empty dict (no entries yet).
 
 ---
 
-## Exercise 10.2 — Geocode via Nominatim (with rate limiting)
+## Exercise 10.2 - Geocode via Nominatim (with rate limiting)
 
 ```python
 @retry(wait=wait_exponential(multiplier=1, min=1, max=30), stop=stop_after_attempt(5), reraise=True)
@@ -146,9 +146,9 @@ Each call should now be sub-millisecond. **That's the cache earning its keep.**
 
 ---
 
-## Exercise 10.3 — Reverse geocoding (lat/lng → address)
+## Exercise 10.3 - Reverse geocoding (lat/lng → address)
 
-The reverse of geocoding — given coordinates, get the address. Same Nominatim endpoint, different path.
+The reverse of geocoding - given coordinates, get the address. Same Nominatim endpoint, different path.
 
 ```python
 @retry(wait=wait_exponential(multiplier=1, min=1, max=30), stop=stop_after_attempt(5), reraise=True)
@@ -187,7 +187,7 @@ print(reverse_geocode(40.7484, -73.9857))   # Empire State Building area
 
 ---
 
-## Exercise 10.4 — Census tract from coordinates (worked)
+## Exercise 10.4 - Census tract from coordinates (worked)
 
 The US Census Geocoder converts lat/lng to a tract GEOID. Two endpoints:
 
@@ -240,7 +240,7 @@ Now you have the tract GEOID. Next: demographics from ACS.
 
 ---
 
-## Exercise 10.5 — Census ACS demographics (worked)
+## Exercise 10.5 - Census ACS demographics (worked)
 
 For one tract, fetch median household income, education, age distribution.
 
@@ -296,7 +296,7 @@ For real data you'd need the API key. The pattern: tract GEOID → ACS columns �
 
 ---
 
-## Exercise 10.6 — Holidays enrichment
+## Exercise 10.6 - Holidays enrichment
 
 ```python
 us_holidays = holidays.US(years=range(2023, 2026))
@@ -325,7 +325,7 @@ You should see Independence Day, Thanksgiving, Christmas Day flagged as holidays
 
 ---
 
-## Exercise 10.7 — Build the enriched customer table
+## Exercise 10.7 - Build the enriched customer table
 
 Combine everything: synthesize a customer dataset, geocode it, look up tracts, attach demographics (mock if no Census key), add holiday context to their signup date.
 
@@ -399,7 +399,7 @@ You should see each customer with 10+ added columns. **This is the format every 
 
 ---
 
-## Exercise 10.8 — Column-level provenance metadata
+## Exercise 10.8 - Column-level provenance metadata
 
 ```python
 provenance = pl.DataFrame({
@@ -437,7 +437,7 @@ Ship this alongside the enriched data. When a stakeholder asks "where does media
 
 ---
 
-## Exercise 10.9 (stretch) — Self-hosted Nominatim
+## Exercise 10.9 (stretch) - Self-hosted Nominatim
 
 For real production at 1M+ addresses, you'd run Nominatim yourself.
 
@@ -475,7 +475,7 @@ The pattern: prototype with hosted Nominatim, scale up by self-hosting. Same cod
 
 You can enrich any address with lat/lng, tract, demographics. Any timestamp with holiday + business-day context. The cache pattern keeps re-runs free; the provenance table keeps stakeholders happy. The Nominatim usage policy stays respected.
 
-Week 11 will use this enriched data for **feature engineering** — turning the columns into ML-ready features without leakage. Week 12 introduces embeddings for the cases where structured enrichment falls short.
+Week 11 will use this enriched data for **feature engineering** - turning the columns into ML-ready features without leakage. Week 12 introduces embeddings for the cases where structured enrichment falls short.
 
 ---
 

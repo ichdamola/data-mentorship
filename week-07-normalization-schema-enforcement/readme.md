@@ -9,7 +9,7 @@ By the end of this week you'll be able to:
 - Coerce types safely: when to upcast, when to error, when to quarantine
 - Normalize the canonical messy fields: dates/times, phone numbers, addresses, currency, units
 - Define schemas with **pandera** (for DataFrames), **pyarrow** (for Parquet), **Pydantic** (for records/rows)
-- Reason about **schema evolution** — what to do when an upstream producer adds, removes, or renames a column
+- Reason about **schema evolution** - what to do when an upstream producer adds, removes, or renames a column
 - Build a "schema firewall" between ingestion and your modeled layer
 
 ## 🧰 Lab setup
@@ -30,8 +30,8 @@ uv add pandera pyarrow pydantic phonenumbers babel
 |---|---|---|
 | [pandera docs](https://pandera.readthedocs.io/) | The tool | 45 min |
 | [Pydantic v2 docs](https://docs.pydantic.dev/) | For row-level validation | 30 min |
-| [Apache Iceberg — Schema evolution](https://iceberg.apache.org/docs/latest/evolution/) | The reference for how to do it right | 30 min |
-| [Kimball — Slowly Changing Dimensions](https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/slowly-changing-dimension/) | The classical pattern | 20 min |
+| [Apache Iceberg - Schema evolution](https://iceberg.apache.org/docs/latest/evolution/) | The reference for how to do it right | 30 min |
+| [Kimball - Slowly Changing Dimensions](https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/slowly-changing-dimension/) | The classical pattern | 20 min |
 
 ## 💡 What you should already know
 

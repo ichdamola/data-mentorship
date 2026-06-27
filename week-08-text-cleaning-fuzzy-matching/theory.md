@@ -1,4 +1,4 @@
-# Week 08: Theory — Text Cleaning and Fuzzy Matching
+# Week 08: Theory - Text Cleaning and Fuzzy Matching
 
 Half of every real-world dataset is text in a column that pretends to be structured. **Product names**, **addresses**, **free-form comments**, **support ticket descriptions**, **user-generated tags**. None of it is clean. Cleaning it is the difference between a dashboard that's accurate and one that pretends to be.
 
@@ -14,8 +14,8 @@ The "I'll just lower-case it and strip whitespace" instinct fails the moment Uni
 
 A string `"café"` in memory could be:
 
-- 4 code points: `c`, `a`, `f`, `é` (one code point for é) — **NFC**
-- 5 code points: `c`, `a`, `f`, `e`, ` ́ ` (e + combining acute) — **NFD**
+- 4 code points: `c`, `a`, `f`, `é` (one code point for é) - **NFC**
+- 5 code points: `c`, `a`, `f`, `e`, ` ́ ` (e + combining acute) - **NFD**
 
 Both render identically. Both compare *unequal* with `==`. **You must normalize.**
 
@@ -31,14 +31,14 @@ The forms:
 
 | Form | Description |
 |---|---|
-| **NFC** (Composed) | Combine where possible — "é" as one code point |
-| **NFD** (Decomposed) | Split — "é" as e + combining mark |
+| **NFC** (Composed) | Combine where possible - "é" as one code point |
+| **NFD** (Decomposed) | Split - "é" as e + combining mark |
 | **NFKC** (Compatibility composed) | Like NFC but also normalize compatibility characters (full-width digits → ASCII) |
 | **NFKD** (Compatibility decomposed) | Like NFD with compatibility folding |
 
 **For deduplication and matching, normalize to NFC first.** Always.
 
-### Mojibake — the wrong-encoding curse
+### Mojibake - the wrong-encoding curse
 
 Mojibake is what you see when text was decoded with the wrong encoding. The classic: a string was UTF-8 but got interpreted as Latin-1, then re-encoded.
 
@@ -71,7 +71,7 @@ Handle on read:
 pd.read_csv("file.csv", encoding="utf-8-sig")    # strips BOM
 ```
 
-### Confusables — homoglyphs
+### Confusables - homoglyphs
 
 Cyrillic `а` (U+0430) and Latin `a` (U+0061) look identical. Spammers exploit this. For high-stakes matching (KYC, fraud), use the `confusables` library or strip non-Latin scripts explicitly.
 
@@ -81,7 +81,7 @@ Cyrillic `а` (U+0430) and Latin `a` (U+0061) look identical. Spammers exploit t
 # Good
 with open("file.csv", encoding="utf-8") as f: ...
 
-# Risky — depends on OS locale
+# Risky - depends on OS locale
 with open("file.csv") as f: ...
 ```
 
@@ -122,7 +122,7 @@ This is the senior version of the "lowercase + strip" reflex. You'll see it in e
 
 ---
 
-## Part 3: Regex — write the read-later version
+## Part 3: Regex - write the read-later version
 
 Regex is the universal tool for "find this pattern in messy text." It's also notorious for write-once unreadable code.
 
@@ -136,7 +136,7 @@ import re
 # Awful
 pat = r"(\d{3})-(\d{3})-(\d{4})"
 
-# Better — readable, named groups
+# Better - readable, named groups
 pat = re.compile(r"""
     (?P<area>\d{3})       # area code
     [-.\s]?               # optional separator
@@ -154,11 +154,11 @@ print(m.group("area"))    # '212'
 ### Anchor explicitly
 
 ```python
-# Bad — matches "abc123def"
+# Bad - matches "abc123def"
 re.match(r"\d+", "abc123def")
 
-# Good — fully anchored
-re.match(r"^\d+$", "abc123def")    # None — correctly rejects
+# Good - fully anchored
+re.match(r"^\d+$", "abc123def")    # None - correctly rejects
 ```
 
 `^` and `$` (with `re.MULTILINE` if needed) prevent partial-match surprises. For full-string matching, prefer `re.fullmatch()`.
@@ -181,9 +181,9 @@ The Russ Cox paper "Regular Expression Matching Can Be Simple and Fast" explains
 
 ---
 
-## Part 4: String distance — rapidfuzz
+## Part 4: String distance - rapidfuzz
 
-Modern dedup, matching, search-as-you-type, autocorrect — all rest on string distance.
+Modern dedup, matching, search-as-you-type, autocorrect - all rest on string distance.
 
 ### Distance vs similarity
 
@@ -203,16 +203,16 @@ Most libraries (rapidfuzz, fuzzywuzzy) report similarity scaled 0-100.
 | **`fuzz.partial_ratio`** | Best score of any substring | One string is contained in or extends another |
 | **`fuzz.token_sort_ratio`** | Sort words, then compare | Word-order doesn't matter |
 | **`fuzz.token_set_ratio`** | Set of words, ignore order + duplicates | Word-order doesn't matter AND extras allowed |
-| **`fuzz.QRatio`** / **`WRatio`** | Heuristic combination of the above | Production default — picks the right one |
+| **`fuzz.QRatio`** / **`WRatio`** | Heuristic combination of the above | Production default - picks the right one |
 
 ```python
 from rapidfuzz import fuzz, process
 
-fuzz.ratio("Apple Inc.", "Apple Incorporated")            # 78 — quite different
-fuzz.partial_ratio("Apple", "Apple Inc.")                  # 100 — "Apple" is in "Apple Inc."
-fuzz.token_sort_ratio("Apple Inc.", "Inc. Apple")          # 100 — same tokens, different order
-fuzz.token_set_ratio("Apple Inc., USA", "Apple, Inc. USA") # 100 — same tokens
-fuzz.WRatio("Apple Inc.", "apple incorporated")            # ~88 — combined heuristic
+fuzz.ratio("Apple Inc.", "Apple Incorporated")            # 78 - quite different
+fuzz.partial_ratio("Apple", "Apple Inc.")                  # 100 - "Apple" is in "Apple Inc."
+fuzz.token_sort_ratio("Apple Inc.", "Inc. Apple")          # 100 - same tokens, different order
+fuzz.token_set_ratio("Apple Inc., USA", "Apple, Inc. USA") # 100 - same tokens
+fuzz.WRatio("Apple Inc.", "apple incorporated")            # ~88 - combined heuristic
 ```
 
 ### Find best match in a list
@@ -260,7 +260,7 @@ Weaknesses: fixed label set; struggles on domain-specific data without retrainin
 
 ### GLiNER (2024+)
 
-A newer transformer-based NER that lets you **specify the labels at inference time** — no retraining. "Find me products, prices, and locations" using natural language labels.
+A newer transformer-based NER that lets you **specify the labels at inference time** - no retraining. "Find me products, prices, and locations" using natural language labels.
 
 ```python
 from gliner import GLiNER
@@ -290,7 +290,7 @@ NER shines on truly free text (support tickets, contract clauses, news articles)
 
 ---
 
-## Part 6: Tokenization — the gateway concept
+## Part 6: Tokenization - the gateway concept
 
 Tokenization splits text into units. Three common granularities:
 
@@ -310,7 +310,7 @@ df.select(pl.col("description").str.split(" ").alias("tokens"))
 
 ---
 
-## Part 7: Text-as-categorical — beware the long tail
+## Part 7: Text-as-categorical - beware the long tail
 
 When you have a free-text column ("city", "department", "category"), the distinct-value count often has a Zipf distribution:
 
@@ -353,7 +353,7 @@ The senior pattern across all of these: **normalize aggressively at ingest; pres
 - **Week 07 (schema)**: The Pydantic regex patterns for order_id, phone, etc. are tiny text validators.
 - **Week 12 (embeddings)**: When text dedup with rapidfuzz hits its limits, embeddings take over.
 
-This week's tools become the foundation for the rest — every later week assumes you can clean text into canonical form before doing anything with it.
+This week's tools become the foundation for the rest - every later week assumes you can clean text into canonical form before doing anything with it.
 
 ---
 

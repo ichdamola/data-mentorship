@@ -1,4 +1,4 @@
-# Week 09: Lab — Real Joins, Real Data
+# Week 09: Lab - Real Joins, Real Data
 
 You'll do an as-of join (taxi × weather), a geographic join (taxi × neighborhoods), a Cartesian-detection check, and a point-in-time ML feature join.
 
@@ -22,7 +22,7 @@ Make sure you have the NYC taxi parquet from week 01-03. We'll add weather and n
 
 ---
 
-## Exercise 9.1 — Setup the reference tables
+## Exercise 9.1 - Setup the reference tables
 
 ### Hourly weather (synthetic, plausible)
 
@@ -77,7 +77,7 @@ with open("data/neighborhoods.geojson", "w") as f:
 
 ---
 
-## Exercise 9.2 — As-of join: taxi × weather
+## Exercise 9.2 - As-of join: taxi × weather
 
 Each taxi trip happens at some timestamp; you want the **most recent** hourly weather reading at that moment.
 
@@ -156,12 +156,12 @@ Polars and DuckDB ASOF should be **10-100× faster** than the correlated subquer
 
 ---
 
-## Exercise 9.3 — Geographic join: point-in-polygon
+## Exercise 9.3 - Geographic join: point-in-polygon
 
 For each taxi pickup point, which borough is it in?
 
 ```python
-# Load trips with lat/lng — NYC taxi data doesn't have it in recent years, so we'll fake it from location IDs
+# Load trips with lat/lng - NYC taxi data doesn't have it in recent years, so we'll fake it from location IDs
 # (For real work you'd use the actual GPS columns from the 2014 vintage of TLC data.)
 
 # Simulate: for each pickup location ID, generate a random plausible lat/lng
@@ -207,11 +207,11 @@ borough_counts = con.sql("""
 print(borough_counts)
 ```
 
-You should see trips distributed across the four boroughs (and some `null` for points outside any polygon — they fell outside the bounding boxes). **Real production uses actual polygons; the join syntax stays the same.**
+You should see trips distributed across the four boroughs (and some `null` for points outside any polygon - they fell outside the bounding boxes). **Real production uses actual polygons; the join syntax stays the same.**
 
 ---
 
-## Exercise 9.4 — Cartesian detection
+## Exercise 9.4 - Cartesian detection
 
 Build a sanity-check function: given a join plan, verify row counts make sense.
 
@@ -250,7 +250,7 @@ Wire this into your pipeline at every join step. If `status = CARTESIAN_RISK`, f
 
 ---
 
-## Exercise 9.5 — Aggregate-then-join
+## Exercise 9.5 - Aggregate-then-join
 
 Compare the slow pattern to the fast one.
 
@@ -290,11 +290,11 @@ print(f"aggregate-then-join: {t_fast:.2f}s")
 print(f"speedup: {t_slow/t_fast:.1f}x")
 ```
 
-On larger datasets the speedup is dramatic — sometimes the difference between "runs" and "OOMs."
+On larger datasets the speedup is dramatic - sometimes the difference between "runs" and "OOMs."
 
 ---
 
-## Exercise 9.6 — Point-in-time correctness for ML
+## Exercise 9.6 - Point-in-time correctness for ML
 
 Build a tiny example: predicting customer churn based on features as they were known **at the prediction date**.
 
@@ -327,7 +327,7 @@ events = pl.DataFrame({
     "label": [0, 1, 0, 1, 1],   # 1 = churned within next 30 days
 }).sort("event_ts")
 
-# Point-in-time join — only use customer state KNOWN at event_ts
+# Point-in-time join - only use customer state KNOWN at event_ts
 ml_features = events.join_asof(
     customer_history.sort("valid_from"),
     left_on="event_ts",
@@ -344,7 +344,7 @@ You should see each event paired with the customer's plan **at that time**, not 
 
 ---
 
-## Exercise 9.7 — Geographic join with spatial index
+## Exercise 9.7 - Geographic join with spatial index
 
 ```python
 con.execute("CREATE INDEX nbh_rtree ON neighborhoods USING RTREE (geom);")
@@ -364,9 +364,9 @@ For our 4 polygons the speedup is minimal. For real NYC's ~300 neighborhoods × 
 
 ---
 
-## Exercise 9.8 (stretch) — Window-based time join
+## Exercise 9.8 (stretch) - Window-based time join
 
-When the "as of" join isn't enough — you need ALL events within a window:
+When the "as of" join isn't enough - you need ALL events within a window:
 
 ```python
 # "For each event, get all events from same customer within the past 7 days"
@@ -409,7 +409,7 @@ This is the pattern for "user's behavior over the past week" features. Common in
 
 You can now do every kind of join that matters in practice: temporal (as-of), geographic (point-in-polygon, nearest-neighbor), range (interval validity), and point-in-time (for ML training without leakage). You can detect Cartesian disasters with a one-line check and rewrite slow joins as fast aggregate-then-join.
 
-Week 10 uses these joins to **bring external data in** — geocoding, Census demographics, weather, holidays. The output of week 09 (clean joinable tables) plus the output of week 10 (rich enrichment) is what makes downstream ML and dashboards 5-10× more valuable.
+Week 10 uses these joins to **bring external data in** - geocoding, Census demographics, weather, holidays. The output of week 09 (clean joinable tables) plus the output of week 10 (rich enrichment) is what makes downstream ML and dashboards 5-10× more valuable.
 
 ---
 

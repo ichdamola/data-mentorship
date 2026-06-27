@@ -1,4 +1,4 @@
-# Week 02: Lab — pandas and Polars side by side
+# Week 02: Lab - pandas and Polars side by side
 
 Same 8 analyses, in both libraries. By the end you'll have written every common operation twice and will know which idiom you prefer.
 
@@ -34,7 +34,7 @@ PATH = "data/yellow_tripdata_2024-01.parquet"
 
 ---
 
-## Exercise 2.1 — Load + inspect
+## Exercise 2.1 - Load + inspect
 
 ```python
 # pandas
@@ -50,15 +50,15 @@ print(df_pl.schema)
 print(df_pl.head(3))
 ```
 
-Notice: pandas with `dtype_backend="pyarrow"` gives you proper `string`, `datetime`, `int64` dtypes — no `object` columns. **Use this whenever loading messy data.**
+Notice: pandas with `dtype_backend="pyarrow"` gives you proper `string`, `datetime`, `int64` dtypes - no `object` columns. **Use this whenever loading messy data.**
 
 ---
 
-## Exercise 2.2 — Filter + add column + aggregate (both styles)
+## Exercise 2.2 - Filter + add column + aggregate (both styles)
 
 The headline pattern: clean rows, derive a column, summarize.
 
-### pandas — method chain version
+### pandas - method chain version
 
 ```python
 result_pd = (
@@ -78,7 +78,7 @@ result_pd = (
 print(result_pd)
 ```
 
-### Polars — expression chain version
+### Polars - expression chain version
 
 ```python
 result_pl = (
@@ -106,7 +106,7 @@ Both produce the same answer. Which felt more readable? **Most developers find P
 
 ---
 
-## Exercise 2.3 — Benchmark them
+## Exercise 2.3 - Benchmark them
 
 ```python
 def bench(fn, n_iter=5):
@@ -161,11 +161,11 @@ polars eager:   40 ms      ~5x
 polars lazy:    25 ms      ~7x
 ```
 
-Lazy beats eager because it includes the file read and only loads the 4 columns it needs — projection pushdown in action.
+Lazy beats eager because it includes the file read and only loads the 4 columns it needs - projection pushdown in action.
 
 ---
 
-## Exercise 2.4 — `pl.scan_parquet` projection pushdown
+## Exercise 2.4 - `pl.scan_parquet` projection pushdown
 
 Watch Polars only read the columns the query uses.
 
@@ -196,14 +196,14 @@ WITH_COLUMNS:
 
 ---
 
-## Exercise 2.5 — Window functions in both libraries
+## Exercise 2.5 - Window functions in both libraries
 
 Replicate the SQL window-function patterns from week 01 in pandas and Polars.
 
 ### "Top 3 trips per day"
 
 ```python
-# pandas — use groupby + apply (slow but works)
+# pandas - use groupby + apply (slow but works)
 top3_pd = (
     df_pd
     .assign(pickup_date=lambda d: d["tpep_pickup_datetime"].dt.date)
@@ -212,7 +212,7 @@ top3_pd = (
     .head(3)
 )
 
-# pandas — use rank() (faster than apply, looks more SQL-like)
+# pandas - use rank() (faster than apply, looks more SQL-like)
 top3_pd_v2 = (
     df_pd
     .assign(
@@ -223,7 +223,7 @@ top3_pd_v2 = (
     .query("rn <= 3")
 )
 
-# Polars — clean window function via .over()
+# Polars - clean window function via .over()
 top3_pl = (
     df_pl
     .with_columns(pickup_date=pl.col("tpep_pickup_datetime").dt.date())
@@ -234,7 +234,7 @@ top3_pl = (
 )
 ```
 
-The Polars `.over()` is the cleanest of the three — closest to the SQL spec.
+The Polars `.over()` is the cleanest of the three - closest to the SQL spec.
 
 ### Running total
 
@@ -264,7 +264,7 @@ Same operation; Polars uses `shift`, pandas uses `shift`. Match.
 
 ---
 
-## Exercise 2.6 — Group-by + multiple aggregations
+## Exercise 2.6 - Group-by + multiple aggregations
 
 The patterns differ more here.
 
@@ -286,7 +286,7 @@ agg_pd = (
 )
 ```
 
-Note the lambda for p99 — pandas's named-agg syntax doesn't accept quantile directly.
+Note the lambda for p99 - pandas's named-agg syntax doesn't accept quantile directly.
 
 ### Polars
 
@@ -306,11 +306,11 @@ agg_pl = (
 )
 ```
 
-Polars's expression API treats `quantile(0.99)` like any other method — no lambda gymnastics. **For multi-aggregate group-bys, Polars is consistently nicer.**
+Polars's expression API treats `quantile(0.99)` like any other method - no lambda gymnastics. **For multi-aggregate group-bys, Polars is consistently nicer.**
 
 ---
 
-## Exercise 2.7 — The four pandas footguns, observed
+## Exercise 2.7 - The four pandas footguns, observed
 
 Trigger each one deliberately.
 
@@ -327,7 +327,7 @@ filtered = df_copy[df_copy["fare_amount"] > 10]
 filtered["fare_amount"] = filtered["fare_amount"] * 2
 # Likely SettingWithCopyWarning
 
-# On modern pandas (3.x), CoW is always on — the warning doesn't fire
+# On modern pandas (3.x), CoW is always on - the warning doesn't fire
 # regardless of any toggle, because pandas tracks copies internally.
 filtered = df_copy[df_copy["fare_amount"] > 10]
 filtered["fare_amount"] = filtered["fare_amount"] * 2   # clean
@@ -348,16 +348,16 @@ print(f"slow apply:  {bench(slow_pipeline)*1000:.1f} ms")
 print(f"vectorized:  {bench(fast_pipeline)*1000:.1f} ms")
 ```
 
-You should see vectorized ~50-200× faster. The lesson: anytime you reach for `.apply`, try to vectorize first. Most things can be — `np.where`, `pd.cut`, simple arithmetic.
+You should see vectorized ~50-200× faster. The lesson: anytime you reach for `.apply`, try to vectorize first. Most things can be - `np.where`, `pd.cut`, simple arithmetic.
 
 ### Footgun 3: `object` columns sneak in
 
 ```python
-# Load with the default backend — note dtypes
+# Load with the default backend - note dtypes
 df_default = pd.read_parquet(PATH)
 print(df_default.dtypes)
 
-# vs PyArrow backend — proper string/date types
+# vs PyArrow backend - proper string/date types
 df_pa = pd.read_parquet(PATH, dtype_backend="pyarrow")
 print(df_pa.dtypes)
 ```
@@ -375,7 +375,7 @@ before = sys.getsizeof(df_sample)
 df_sample.sort_values("fare_amount", inplace=True)
 after = sys.getsizeof(df_sample)
 print(f"size before/after inplace: {before} / {after}")
-# Same size — no memory was saved.
+# Same size - no memory was saved.
 
 # And it broke method chaining, hides the result.
 # Use: df = df.sort_values("fare_amount")
@@ -383,7 +383,7 @@ print(f"size before/after inplace: {before} / {after}")
 
 ---
 
-## Exercise 2.8 — Migrate a pandas script to Polars
+## Exercise 2.8 - Migrate a pandas script to Polars
 
 Take this contrived pandas script:
 
@@ -442,7 +442,7 @@ You should see ~5-10× speedup, same result.
 
 ---
 
-## Exercise 2.9 — Round-trip conversion
+## Exercise 2.9 - Round-trip conversion
 
 Show pandas ↔ Polars zero-copy round-trip.
 
@@ -455,7 +455,7 @@ print(type(pd_from_pl), pd_from_pl.shape)
 pl_from_pd = pl.from_pandas(df_pd)
 print(type(pl_from_pd), pl_from_pd.shape)
 
-# Both share Arrow buffers underneath — conversion is cheap
+# Both share Arrow buffers underneath - conversion is cheap
 ```
 
 Use this at boundaries:
@@ -467,17 +467,17 @@ The cost is real but minimal. **Don't agonize over which library to use for the 
 
 ---
 
-## Exercise 2.10 — Pick your style and lock it in
+## Exercise 2.10 - Pick your style and lock it in
 
 In your own notebook from this lab, pick the version (pandas or Polars) for each of the 9 exercises above that you found clearer or faster. Save those into a file `02_solutions.py`.
 
-You're building muscle memory. Next week you'll do ingestion in whichever style felt right; week 04 onwards you'll mostly use Polars (it's faster, and the lab exercises are smoother in it) — but you should be **able** to write either fluently.
+You're building muscle memory. Next week you'll do ingestion in whichever style felt right; week 04 onwards you'll mostly use Polars (it's faster, and the lab exercises are smoother in it) - but you should be **able** to write either fluently.
 
 ---
 
 ## Submission checklist
 
-- [ ] On pandas 3.x — CoW is always on; no toggle to set
+- [ ] On pandas 3.x - CoW is always on; no toggle to set
 - [ ] Parquet loaded in both pandas (with `dtype_backend="pyarrow"`) and Polars
 - [ ] Same group-by + agg analysis done in both libs; results identical
 - [ ] Benchmark shows Polars at least 3× faster than pandas on the multi-step pipeline
@@ -494,7 +494,7 @@ You're building muscle memory. Next week you'll do ingestion in whichever style 
 
 You can now write the same operation idiomatically in both pandas and Polars, you understand the **expressions-vs-imperatives** mental model that makes Polars feel different, and you've felt the four pandas footguns bite (so you'll avoid them in real code).
 
-For the rest of this curriculum we'll lean toward **Polars + lazy mode** as the default, dropping to pandas when an ecosystem library demands it. By week 16 you'll have a production pipeline that uses Polars at the hot path and SQL for the materialized models — the senior 2026 stack.
+For the rest of this curriculum we'll lean toward **Polars + lazy mode** as the default, dropping to pandas when an ecosystem library demands it. By week 16 you'll have a production pipeline that uses Polars at the hot path and SQL for the materialized models - the senior 2026 stack.
 
 ---
 

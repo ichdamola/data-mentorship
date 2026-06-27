@@ -1,4 +1,4 @@
-# Week 01: SQL Deep — the patterns nobody teaches
+# Week 01: SQL Deep - the patterns nobody teaches
 
 ## 🎯 What you'll learn
 
@@ -11,7 +11,7 @@ By the end of this week you'll be able to:
 - Use `QUALIFY` to filter on window results without subqueries
 - Do gaps-and-islands, sessionization, and cohort retention with no Python in sight
 - Replace 200-line pandas pipelines with 20-line SQL
-- Recognize when SQL stops paying — and when it's still the right hammer
+- Recognize when SQL stops paying - and when it's still the right hammer
 
 ## ⚠️ Why DuckDB
 
@@ -27,7 +27,7 @@ uv add duckdb pandas pyarrow
 uv run python -c "import duckdb; print(duckdb.__version__)"
 ```
 
-We'll use the NYC Yellow Taxi trip data — one of the canonical clean-and-realistic datasets for analytics work.
+We'll use the NYC Yellow Taxi trip data - one of the canonical clean-and-realistic datasets for analytics work.
 
 ```bash
 mkdir -p data && cd data
@@ -50,8 +50,8 @@ If that URL changes (NYC TLC publishes new files monthly), grab any month from [
 |---|---|---|
 | [Mode SQL Window Functions](https://mode.com/sql-tutorial/sql-window-functions/) | The clearest free tutorial | 60 min |
 | [DuckDB SQL reference (SELECT)](https://duckdb.org/docs/sql/statements/select) | The whole language on one page | 45 min skim |
-| [Markus Winand — Modern SQL](https://modern-sql.com/) | The "what's actually in the standard since 2003" companion | 60 min skim |
-| [Joe Celko's SQL puzzles](https://www.amazon.com/Joe-Celkos-Puzzles-Answers-Kaufmann/dp/0123735963) (selected) | The classic problem-solving collection — optional but recommended | as much as you want |
+| [Markus Winand - Modern SQL](https://modern-sql.com/) | The "what's actually in the standard since 2003" companion | 60 min skim |
+| [Joe Celko's SQL puzzles](https://www.amazon.com/Joe-Celkos-Puzzles-Answers-Kaufmann/dp/0123735963) (selected) | The classic problem-solving collection - optional but recommended | as much as you want |
 
 ## 💡 What you should already know
 

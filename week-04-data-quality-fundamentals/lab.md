@@ -1,4 +1,4 @@
-# Week 04: Lab — Profile, Validate, Quarantine
+# Week 04: Lab - Profile, Validate, Quarantine
 
 You'll profile the NYC trees data from week 03, write expectations in two tools (pandera and Great Expectations), watch them fail when reality diverges, and build a quarantine pipeline. By the end you'll have a validation harness you'd run in CI.
 
@@ -31,7 +31,7 @@ The exercises below are written for the NYC trees data; the patterns transfer.
 
 ---
 
-## Exercise 4.1 — DuckDB SUMMARIZE (the 5-second profile)
+## Exercise 4.1 - DuckDB SUMMARIZE (the 5-second profile)
 
 ```python
 con = duckdb.connect()
@@ -39,7 +39,7 @@ summary = con.sql(f"SUMMARIZE FROM read_parquet('{SILVER_PATH}')").fetchdf()
 print(summary[["column_name", "column_type", "min", "max", "avg", "null_percentage", "count"]])
 ```
 
-You should see one row per column with stats. **Skim the null_percentage column** — anything above 0% deserves a question. For the trees data:
+You should see one row per column with stats. **Skim the null_percentage column** - anything above 0% deserves a question. For the trees data:
 - `spc_common` should be ~0%
 - `health` will be ~5-10% (some trees haven't been assessed)
 - `tree_dbh` should be ~0%
@@ -48,7 +48,7 @@ This 5-second scan flags the columns to look at more carefully.
 
 ---
 
-## Exercise 4.2 — ydata-profiling (the 30-second-but-thorough profile)
+## Exercise 4.2 - ydata-profiling (the 30-second-but-thorough profile)
 
 ```python
 from ydata_profiling import ProfileReport
@@ -56,7 +56,7 @@ from ydata_profiling import ProfileReport
 # Convert to pandas for ydata-profiling
 df_pd = pl.read_parquet(SILVER_PATH).to_pandas()
 
-profile = ProfileReport(df_pd, title="NYC Trees — Quality Profile", minimal=True)
+profile = ProfileReport(df_pd, title="NYC Trees - Quality Profile", minimal=True)
 profile.to_file("reports/nyc_trees_profile.html")
 print("open reports/nyc_trees_profile.html in a browser")
 ```
@@ -67,11 +67,11 @@ The full report is a 5-MB HTML file with:
 - Sample rows
 - Warnings (high correlation, high cardinality, etc.)
 
-**Skim it.** Note three observations about the data you didn't have before this report. Send that report to a hypothetical stakeholder — that's the artifact that gets people aligned on what the data actually is.
+**Skim it.** Note three observations about the data you didn't have before this report. Send that report to a hypothetical stakeholder - that's the artifact that gets people aligned on what the data actually is.
 
 ---
 
-## Exercise 4.3 — Manual quick profile
+## Exercise 4.3 - Manual quick profile
 
 For dataset you query repeatedly, build a tiny manual profile function:
 
@@ -100,7 +100,7 @@ This is the function you copy-paste into every notebook. Customize as you like.
 
 ---
 
-## Exercise 4.4 — A pandera schema for the trees data
+## Exercise 4.4 - A pandera schema for the trees data
 
 ```python
 import pandera.polars as ppa
@@ -168,11 +168,11 @@ except pa.errors.SchemaErrors as e:
     print(e.failure_cases.head(20))
 ```
 
-You should see 5+ failures listed — boroname, status, health, latitude/longitude, tree_dbh. Each row, each rule, captured.
+You should see 5+ failures listed - boroname, status, health, latitude/longitude, tree_dbh. Each row, each rule, captured.
 
 ---
 
-## Exercise 4.5 — Great Expectations (the heavyweight)
+## Exercise 4.5 - Great Expectations (the heavyweight)
 
 GX 1.x is heavier. Initialize a project:
 
@@ -206,7 +206,7 @@ for r in result.results:
 
 ---
 
-## Exercise 4.6 — Quarantine pattern
+## Exercise 4.6 - Quarantine pattern
 
 ```python
 def validate_and_quarantine(df: pl.DataFrame, schema: DataFrameSchema, out_good: str, out_bad: str):
@@ -224,7 +224,7 @@ def validate_and_quarantine(df: pl.DataFrame, schema: DataFrameSchema, out_good:
                 bad_indices.add(case["index"])
 
         if not bad_indices:
-            # The failure is column-level (e.g., column type) — bail out
+            # The failure is column-level (e.g., column type) - bail out
             raise
 
         df_with_idx = df.with_row_index("__idx")
@@ -256,7 +256,7 @@ This is the senior pattern: bad rows aren't blocking, but they're tracked, and t
 
 ---
 
-## Exercise 4.7 — Tiny observability table
+## Exercise 4.7 - Tiny observability table
 
 Track quality metrics over time. Each run appends to a `_metrics` table.
 
@@ -308,7 +308,7 @@ A daily dashboard fed from this table is your minimum-viable observability. Plot
 
 ---
 
-## Exercise 4.8 — Write a contract YAML
+## Exercise 4.8 - Write a contract YAML
 
 For one of your datasets, write the contract in YAML:
 
@@ -367,7 +367,7 @@ In a real org this YAML lives in the producer team's repo, is reviewed by consum
 
 ---
 
-## Exercise 4.9 (stretch) — Same checks in Soda
+## Exercise 4.9 (stretch) - Same checks in Soda
 
 ```yaml
 # checks/nyc_trees.yml

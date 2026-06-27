@@ -1,4 +1,4 @@
-# Week 06: Lab — Missing Data and Outliers
+# Week 06: Lab - Missing Data and Outliers
 
 You'll generate a dataset with three flavors of missingness, see why the heatmap matters, try 4 imputation strategies and measure their downstream impact, then run outlier detection 4 ways on the same data.
 
@@ -26,7 +26,7 @@ np.random.seed(42)
 
 ---
 
-## Exercise 6.1 — Generate data with the three missingness types
+## Exercise 6.1 - Generate data with the three missingness types
 
 We'll create a synthetic "survey" dataset where we know the ground truth, deliberately introduce three kinds of missingness, then try to recover.
 
@@ -45,16 +45,16 @@ df_truth = pd.DataFrame({
     "spending": spending,
 })
 
-# (1) MCAR — sensor noise on satisfaction
+# (1) MCAR - sensor noise on satisfaction
 mcar_mask = np.random.random(N) < 0.10
 df_truth.loc[mcar_mask, "satisfaction"] = np.nan
 
-# (2) MAR — older people skip income; missingness depends on AGE (observed)
+# (2) MAR - older people skip income; missingness depends on AGE (observed)
 mar_prob = np.clip((df_truth["age"] - 40) / 80, 0, 0.7)
 mar_mask = np.random.random(N) < mar_prob
 df_truth.loc[mar_mask, "income"] = np.nan
 
-# (3) MNAR — high spenders skip spending; missingness depends on VALUE ITSELF
+# (3) MNAR - high spenders skip spending; missingness depends on VALUE ITSELF
 mnar_prob = np.clip(df_truth["spending"] / df_truth["spending"].max(), 0, 0.5)
 mnar_mask = np.random.random(N) < mnar_prob
 df_truth.loc[mnar_mask, "spending"] = np.nan
@@ -62,37 +62,37 @@ df_truth.loc[mnar_mask, "spending"] = np.nan
 print(f"null rates:")
 print(df_truth.isna().mean())
 # satisfaction ~10% (MCAR)
-# income ~25-35% (MAR — depends on age)
-# spending ~15-25% (MNAR — depends on value)
+# income ~25-35% (MAR - depends on age)
+# spending ~15-25% (MNAR - depends on value)
 ```
 
 This is your test bed: three columns with three different missingness mechanisms, and you have the ground truth to compare against.
 
 ---
 
-## Exercise 6.2 — Diagnose with missingno
+## Exercise 6.2 - Diagnose with missingno
 
 ```python
 fig, axes = plt.subplots(1, 3, figsize=(18, 4))
 msno.matrix(df_truth, ax=axes[0])
-axes[0].set_title("matrix — visual pattern")
+axes[0].set_title("matrix - visual pattern")
 msno.heatmap(df_truth, ax=axes[1])
-axes[1].set_title("heatmap — null correlations")
+axes[1].set_title("heatmap - null correlations")
 msno.dendrogram(df_truth, ax=axes[2])
-axes[2].set_title("dendrogram — group nulls together")
+axes[2].set_title("dendrogram - group nulls together")
 plt.tight_layout(); plt.show()
 ```
 
 You should see:
 - `satisfaction` nulls scattered evenly (MCAR)
 - `income` nulls concentrated where `age` is older (visible in matrix)
-- `spending` nulls correlated with high values (less visible — that's MNAR's signature)
+- `spending` nulls correlated with high values (less visible - that's MNAR's signature)
 
 **MAR is detectable from the data; MNAR usually isn't.** You diagnose MNAR by knowing the data-generating process, not by looking at the file.
 
 ---
 
-## Exercise 6.3 — Four imputation strategies, compared
+## Exercise 6.3 - Four imputation strategies, compared
 
 For each strategy, fill nulls; then fit a regression of `satisfaction ~ age + income + spending` and compare coefficients to the ground truth.
 
@@ -154,7 +154,7 @@ You should see:
 
 ---
 
-## Exercise 6.4 — The "encode missingness as feature" pattern
+## Exercise 6.4 - The "encode missingness as feature" pattern
 
 For tree-based models or any model that can use a categorical/boolean:
 
@@ -168,13 +168,13 @@ print(df_with_indicators.head())
 print(f"shape: {df_with_indicators.shape}")
 ```
 
-This pattern is the production default for ML — you keep the missingness information (often informative) AND a usable numeric column.
+This pattern is the production default for ML - you keep the missingness information (often informative) AND a usable numeric column.
 
 For week 11 (feature engineering) you'll combine this with target encoding and time-window features.
 
 ---
 
-## Exercise 6.5 — Outlier detection 4 ways
+## Exercise 6.5 - Outlier detection 4 ways
 
 Now switch to outliers. Use the income column from the synthetic data.
 
@@ -230,7 +230,7 @@ plt.tight_layout(); plt.show()
 
 ---
 
-## Exercise 6.6 — Multivariate outliers
+## Exercise 6.6 - Multivariate outliers
 
 Some rows are normal on every column individually but weird in combination.
 
@@ -238,24 +238,24 @@ Some rows are normal on every column individually but weird in combination.
 df_multi = df_truth.dropna().copy()
 X = df_multi[["age", "income", "spending"]].values
 
-# LOF — finds locally anomalous points
+# LOF - finds locally anomalous points
 lof = LocalOutlierFactor(n_neighbors=20, contamination=0.05)
 lof_outliers = lof.fit_predict(X) == -1
 print(f"LOF found {lof_outliers.sum()} multivariate outliers")
 
-# Inspect — are they univariately outliers, or only multivariately?
+# Inspect - are they univariately outliers, or only multivariately?
 df_multi["lof_outlier"] = lof_outliers
 print("\nLOF outliers vs typical:")
 print(df_multi.groupby("lof_outlier")[["age", "income", "spending"]].mean())
 ```
 
-Look at the means: LOF-flagged rows might have average age and income but unusual *spending given their income* — a pattern that's invisible univariately.
+Look at the means: LOF-flagged rows might have average age and income but unusual *spending given their income* - a pattern that's invisible univariately.
 
 This is the kind of detection fraud teams care about.
 
 ---
 
-## Exercise 6.7 — The missingness + outliers report
+## Exercise 6.7 - The missingness + outliers report
 
 Combine everything into a per-load report.
 
@@ -291,11 +291,11 @@ print("=== nyc_trees quality report ===")
 print(quality_report(df_truth, "synthetic"))
 ```
 
-Save this; run it on every load. Then compare today's report to yesterday's — that's how you catch drift before stakeholders do.
+Save this; run it on every load. Then compare today's report to yesterday's - that's how you catch drift before stakeholders do.
 
 ---
 
-## Exercise 6.8 — Decide what to do about each column
+## Exercise 6.8 - Decide what to do about each column
 
 Apply the framework to your synthetic data:
 
@@ -330,7 +330,7 @@ This recommendation table is the artifact that gets reviewed with stakeholders. 
 
 ---
 
-## Exercise 6.9 (stretch) — Bias from over-aggressive cleaning
+## Exercise 6.9 (stretch) - Bias from over-aggressive cleaning
 
 A tiny experiment: if you naively clip everything to 99th percentile, what happens to a regression of revenue ~ purchases?
 
@@ -355,13 +355,13 @@ print(f"clipped slope: {m_clipped.coef_[0]:.3f}")
 # Visualize
 fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 axes[0].scatter(purchases, revenue, alpha=0.3, s=5)
-axes[0].set_title(f"truth — slope {m_true.coef_[0]:.2f}")
+axes[0].set_title(f"truth - slope {m_true.coef_[0]:.2f}")
 axes[1].scatter(p_clipped, r_clipped, alpha=0.3, s=5)
-axes[1].set_title(f"clipped 1%/99% — slope {m_clipped.coef_[0]:.2f}")
+axes[1].set_title(f"clipped 1%/99% - slope {m_clipped.coef_[0]:.2f}")
 plt.show()
 ```
 
-Clipping flattens the slope — you've destroyed the relationship at the extremes. **For models that care about the relationship at the extremes (anything customer-LTV-related), this is a silent disaster.**
+Clipping flattens the slope - you've destroyed the relationship at the extremes. **For models that care about the relationship at the extremes (anything customer-LTV-related), this is a silent disaster.**
 
 ---
 

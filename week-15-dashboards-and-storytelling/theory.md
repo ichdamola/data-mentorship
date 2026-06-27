@@ -1,4 +1,4 @@
-# Week 15: Theory — Dashboards and Storytelling
+# Week 15: Theory - Dashboards and Storytelling
 
 A dashboard that ships isn't a feat of plotting. It's a feat of **judgment about what to show**. Most dashboards fail not because they're ugly but because they show too much, don't answer a clear question, and bury the headline.
 
@@ -14,7 +14,7 @@ Three honest goals, in priority order:
 2. **Surface anomalies** that need attention
 3. **Let the curious explore** without breaking the answer above
 
-Most dashboards skip 1 and 2, going straight to 3 — "let people explore." The result: 50 charts, no answer, nobody uses it.
+Most dashboards skip 1 and 2, going straight to 3 - "let people explore." The result: 50 charts, no answer, nobody uses it.
 
 The senior framing: **a dashboard exists to make a decision.** What decision, by whom, how often? If you can't answer that, you're not designing a dashboard; you're decorating a notebook.
 
@@ -43,7 +43,7 @@ Why? Human working memory holds 5-7 items. A dashboard with 20 charts isn't surf
 
 Better: 5 carefully-chosen, large, well-labeled charts. The user can scan them in 30 seconds and walk away knowing the state of the business.
 
-For deeper drill-down, **link to a separate page** — don't cram it on the main view.
+For deeper drill-down, **link to a separate page** - don't cram it on the main view.
 
 ---
 
@@ -52,7 +52,7 @@ For deeper drill-down, **link to a separate page** — don't cram it on the main
 Every dashboard should open with text:
 
 ```
-=== Q2 PERFORMANCE — JUNE 2026 ===
+=== Q2 PERFORMANCE - JUNE 2026 ===
 
 📈 Revenue: $4.2M (+8% vs Q1, +12% vs Q2 last year)
 
@@ -63,9 +63,9 @@ Every dashboard should open with text:
 
 Two sentences and three bullets above the charts. Reasons:
 
-1. **Saves time** — a stakeholder reads 3 lines and has the gist
-2. **Sets context** — the charts below confirm or detail; they don't surprise
-3. **Forces the dashboard author to pick a headline** — the discipline of "if this dashboard had one sentence, what would it be?" is the entire design exercise
+1. **Saves time** - a stakeholder reads 3 lines and has the gist
+2. **Sets context** - the charts below confirm or detail; they don't surprise
+3. **Forces the dashboard author to pick a headline** - the discipline of "if this dashboard had one sentence, what would it be?" is the entire design exercise
 
 Tools to use:
 - **Metabase**: native text cards
@@ -84,7 +84,7 @@ The chart-type-to-question matching:
 | What's the trend over time? | Line chart |
 | How do groups compare? | Bar chart (horizontal if many) |
 | What's the distribution of one variable? | Histogram |
-| Two variables — relationship? | Scatter plot |
+| Two variables - relationship? | Scatter plot |
 | Proportion of a whole | Stacked bar (NOT pie) |
 | Geographic distribution | Map / choropleth |
 | Sequential / hierarchical | Sankey / tree |
@@ -116,8 +116,8 @@ A working layout for an executive dashboard:
 
 ```
 ┌───────────────────────────────────────────────────────────┐
-│  HEADLINE — one sentence, big font                         │
-│  3-4 bullets — quick context                               │
+│  HEADLINE - one sentence, big font                         │
+│  3-4 bullets - quick context                               │
 └───────────────────────────────────────────────────────────┘
 ┌─────────────────┬─────────────────┬─────────────────────┐
 │  KPI 1          │  KPI 2          │  KPI 3              │
@@ -156,7 +156,7 @@ Bar chart Y-axis: **starts at 0**. Always. Otherwise small differences look huge
 
 Line chart Y-axis: **starts at 0 if magnitude matters; starts at min value if change matters**. Stock charts don't start at 0; CO2 charts shouldn't either. State the choice.
 
-Log scale: useful when range is orders of magnitude. **Label clearly** — readers default to linear.
+Log scale: useful when range is orders of magnitude. **Label clearly** - readers default to linear.
 
 ### Annotations
 
@@ -205,7 +205,7 @@ Prevention:
 
 ---
 
-## Part 10: Storytelling — the dashboard isn't the deliverable
+## Part 10: Storytelling - the dashboard isn't the deliverable
 
 For high-stakes findings, the dashboard is the **evidence**. The **narrative** is the deliverable.
 

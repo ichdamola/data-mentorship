@@ -1,6 +1,6 @@
-# Week 05: Theory — Deduplication and Entity Resolution
+# Week 05: Theory - Deduplication and Entity Resolution
 
-The same person registers as "John Smith" once and "J. Smith" the next time. The same product appears in your catalog 14 times with subtly different names. The same company has 6 records because Sales and Marketing each created their own. **Entity resolution** — figuring out which records refer to the same real-world thing — is one of the dirtiest, highest-leverage parts of data work.
+The same person registers as "John Smith" once and "J. Smith" the next time. The same product appears in your catalog 14 times with subtly different names. The same company has 6 records because Sales and Marketing each created their own. **Entity resolution** - figuring out which records refer to the same real-world thing - is one of the dirtiest, highest-leverage parts of data work.
 
 This week covers the spectrum: **exact dedup** (easy), **fuzzy dedup** (the actual work), **probabilistic record linkage** (the modern technique splink uses), and **survivorship** (which record wins).
 
@@ -21,7 +21,7 @@ The 60% that's free: normalize, then exact dedup. The 30% that's actual engineer
 
 ---
 
-## Part 2: Exact dedup — the easy 60%
+## Part 2: Exact dedup - the easy 60%
 
 ```sql
 -- "Keep one row per (email, phone), the latest one"
@@ -50,13 +50,13 @@ regexp_replace(LOWER(TRIM(name)), '[^a-z0-9 ]', '')
 LOWER(regexp_replace(regexp_replace(address, '\s+', ' '), '\bstreet\b', 'st'))
 ```
 
-For the trees data from week 03, exact dedup on `tree_id` should produce zero duplicates (the upstream uses it as a primary key). For real CRMs, even after normalization you'll have ~5-15% near-dupes — and that's the floor before fuzzy work.
+For the trees data from week 03, exact dedup on `tree_id` should produce zero duplicates (the upstream uses it as a primary key). For real CRMs, even after normalization you'll have ~5-15% near-dupes - and that's the floor before fuzzy work.
 
 ---
 
 ## Part 3: The fuzzy dedup problem
 
-You can't compare every pair. For N records, naive pairwise comparison is `N²/2` — for 1M records that's 500B comparisons. Even at 100k comparisons/second that's 8 weeks of compute.
+You can't compare every pair. For N records, naive pairwise comparison is `N²/2` - for 1M records that's 500B comparisons. Even at 100k comparisons/second that's 8 weeks of compute.
 
 The trick: **blocking**. Only compare pairs of records that *might* be matches.
 
@@ -66,11 +66,11 @@ For 1M records:
   After blocking:                10,000,000   (50,000× fewer)
 ```
 
-Blocking trades **completeness** for **tractability** — you might miss a few matches whose blocking keys diverge, but you make the problem solvable.
+Blocking trades **completeness** for **tractability** - you might miss a few matches whose blocking keys diverge, but you make the problem solvable.
 
 ---
 
-## Part 4: Blocking — the secret to making fuzzy work
+## Part 4: Blocking - the secret to making fuzzy work
 
 ### What a blocking key is
 
@@ -118,7 +118,7 @@ jellyfish.metaphone("Smith")  # 'SM0'
 jellyfish.metaphone("Smyth")  # 'SM0'   ← same
 ```
 
-Metaphone is usually better than Soundex — it handles more languages and spelling variants. Use as a blocking key when name spelling is the dominant variability.
+Metaphone is usually better than Soundex - it handles more languages and spelling variants. Use as a blocking key when name spelling is the dominant variability.
 
 ---
 
@@ -174,7 +174,7 @@ You tune the threshold empirically against a labeled sample (Part 8).
 
 ---
 
-## Part 6: Probabilistic record linkage — Fellegi-Sunter
+## Part 6: Probabilistic record linkage - Fellegi-Sunter
 
 The classical statistical framework, from the [1969 paper](https://courses.cs.washington.edu/courses/cse590q/04au/papers/Felligi69.pdf). The core idea: for each field, learn two probabilities:
 
@@ -198,8 +198,8 @@ The basic splink workflow:
 
 1. Define **comparison columns** and their levels (e.g., name: "exact" / "fuzzy match >85" / "fuzzy 60-85" / "no match")
 2. Define **blocking rules** (multiple passes)
-3. Run **EM training** — splink estimates m and u from candidate pairs
-4. Run **predictions** — splink produces a match probability per pair
+3. Run **EM training** - splink estimates m and u from candidate pairs
+4. Run **predictions** - splink produces a match probability per pair
 5. **Threshold** to produce clusters
 
 ```python
@@ -230,7 +230,7 @@ For this curriculum, week 05's lab walks splink hands-on. After that you can dis
 
 ---
 
-## Part 7: Clustering — pairs to entities
+## Part 7: Clustering - pairs to entities
 
 Splink (and any pairwise scorer) produces **pairs with scores**. You then need to convert pairs into entity clusters: "records A, B, C are the same person."
 
@@ -273,13 +273,13 @@ For dedup:
 - **Precision** is "of the pairs you said match, what fraction actually do?"
 - **Recall** is "of the pairs that actually match, what fraction did you find?"
 
-**You can't compute recall from your output alone** — you don't know what you missed. You estimate it via a **stratified labeling** of pairs across the score distribution (some at score 0.99, some at 0.5, some at 0.1) and infer the missed-match rate from those samples.
+**You can't compute recall from your output alone** - you don't know what you missed. You estimate it via a **stratified labeling** of pairs across the score distribution (some at score 0.99, some at 0.5, some at 0.1) and infer the missed-match rate from those samples.
 
 A working number: precision > 0.95 and recall > 0.85 is good for most production dedup. Hitting precision > 0.99 usually requires sacrificing some recall (more conservative thresholds).
 
 ---
 
-## Part 9: Survivorship — picking the winner
+## Part 9: Survivorship - picking the winner
 
 You've identified that records 17, 882, and 9943 are the same person. **Which one survives?** Or do you merge fields?
 
@@ -336,7 +336,7 @@ This separation matters for audit, debugging, and re-running the dedup pipeline 
 
 ### Running on a schedule
 
-Dedup needs to handle **incremental updates**. The naive approach is "re-cluster everything weekly" — expensive but simple. The senior approach:
+Dedup needs to handle **incremental updates**. The naive approach is "re-cluster everything weekly" - expensive but simple. The senior approach:
 
 - **Incremental linkage**: new rows are blocked against existing clusters; matches are added to the cluster
 - **Periodic full re-cluster**: every N weeks, do a full re-run to catch missed matches and split over-merged clusters
@@ -344,7 +344,7 @@ Dedup needs to handle **incremental updates**. The naive approach is "re-cluster
 
 ### Privacy
 
-Dedup output is often **more sensitive** than the input — you've now linked "Jane Smith at one address" and "Jane Smith at another address" into one identity. This may require:
+Dedup output is often **more sensitive** than the input - you've now linked "Jane Smith at one address" and "Jane Smith at another address" into one identity. This may require:
 
 - Access controls on the clustered table (not just the raw)
 - Right-to-be-forgotten handling: a deletion request must propagate through clusters

@@ -1,4 +1,4 @@
-# Week 08: Lab — Clean Text Like You Mean It
+# Week 08: Lab - Clean Text Like You Mean It
 
 You'll diagnose Unicode footguns, build readable regexes, do fuzzy address matching with rapidfuzz, run spaCy NER on real free-text data, and end with a complete "string-to-canonical" pipeline you'd use on any messy text column.
 
@@ -24,7 +24,7 @@ nlp = spacy.load("en_core_web_sm")
 
 ---
 
-## Exercise 8.1 — Unicode footguns
+## Exercise 8.1 - Unicode footguns
 
 ```python
 # Two strings that look identical
@@ -32,11 +32,11 @@ s1 = "café"                                  # NFC: 4 code points
 s2 = "cafe" + "́"                       # NFD: e + combining acute
 print(f"s1 = {s1!r}, len={len(s1)}")
 print(f"s2 = {s2!r}, len={len(s2)}")
-print(f"s1 == s2: {s1 == s2}")               # False — they're not equal
+print(f"s1 == s2: {s1 == s2}")               # False - they're not equal
 print(f"NFC normalize: {unicodedata.normalize('NFC', s1) == unicodedata.normalize('NFC', s2)}")
 # True
 
-# Mojibake — what UTF-8 looks like when decoded as Latin-1
+# Mojibake - what UTF-8 looks like when decoded as Latin-1
 broken = "café".encode("utf-8").decode("latin-1")
 print(f"\nbroken: {broken!r}")
 fixed = broken.encode("latin-1").decode("utf-8")
@@ -45,7 +45,7 @@ print(f"fixed:  {fixed!r}")
 # ftfy handles common cases automatically
 print(f"ftfy:   {ftfy.fix_text(broken)!r}")
 
-# Confusables — Cyrillic а vs Latin a
+# Confusables - Cyrillic а vs Latin a
 cyr_a = "а"
 lat_a = "a"
 print(f"\nCyrillic а: {cyr_a!r} = {ord(cyr_a):#x}")
@@ -58,7 +58,7 @@ You should now feel why "lowercase and strip" isn't enough.
 
 ---
 
-## Exercise 8.2 — The canonical text-normalizer
+## Exercise 8.2 - The canonical text-normalizer
 
 ```python
 def normalize_text(s: str | None) -> str:
@@ -88,7 +88,7 @@ You should see `"  CafÃ© ..."` → `"café são paulo"` for display, `"cafe sa
 
 ---
 
-## Exercise 8.3 — Regex done right
+## Exercise 8.3 - Regex done right
 
 Build a readable regex for parsing a "price with optional currency" pattern:
 
@@ -116,7 +116,7 @@ You should see the structured groupdict for each valid input. The verbose form m
 
 ---
 
-## Exercise 8.4 — Fuzzy matching with rapidfuzz
+## Exercise 8.4 - Fuzzy matching with rapidfuzz
 
 Build a small "canonical address" example.
 
@@ -154,7 +154,7 @@ You should see correct matches for the first 5 (scores >75) and the Pennsylvania
 
 ---
 
-## Exercise 8.5 — Build the fuzzy-matcher with a threshold
+## Exercise 8.5 - Build the fuzzy-matcher with a threshold
 
 ```python
 def match_address(query: str, candidates: list[str], threshold: int = 70):
@@ -181,7 +181,7 @@ for q in queries:
 
 ---
 
-## Exercise 8.6 — Process a batch
+## Exercise 8.6 - Process a batch
 
 For a real catalog (say, 100k product descriptions to dedup against), batch processing matters. rapidfuzz's `cdist` returns the full pairwise score matrix:
 
@@ -221,7 +221,7 @@ You should see 1000 × 100 = 100k comparisons in well under a second.
 
 ---
 
-## Exercise 8.7 — spaCy NER on free text
+## Exercise 8.7 - spaCy NER on free text
 
 Apply NER to extract entities from realistic-shaped text.
 
@@ -246,7 +246,7 @@ The accuracy varies per category. For your own data, you'd want to validate on a
 
 ---
 
-## Exercise 8.8 — Extract structured fields from tickets
+## Exercise 8.8 - Extract structured fields from tickets
 
 Combine regex + NER to extract specific structured fields.
 
@@ -292,14 +292,14 @@ You should see structured dicts for each ticket. This is the pattern for convert
 
 ---
 
-## Exercise 8.9 — Vectorized string ops in Polars
+## Exercise 8.9 - Vectorized string ops in Polars
 
 Speed comparison: per-row Python vs Polars's built-in string ops.
 
 ```python
 import time
 df = pl.DataFrame({
-    "text": [f"Café São Paulo, Brazil — record #{i}" for i in range(100000)],
+    "text": [f"Café São Paulo, Brazil - record #{i}" for i in range(100000)],
 })
 
 # Per-row Python
@@ -328,7 +328,7 @@ You should see ~10-50× speedup. **For ingest-time pipelines processing millions
 
 ---
 
-## Exercise 8.10 — Long-tail categorical handling
+## Exercise 8.10 - Long-tail categorical handling
 
 Apply the "top-N + other" pattern to a free-text category column.
 
@@ -339,7 +339,7 @@ categories = ["sales", "support", "billing", "technical", "feedback"]
 weights = [0.4, 0.3, 0.15, 0.10, 0.05]
 typed_categories = random.choices(categories, weights=weights, k=5000)
 
-# Add long-tail noise — typos and weird variants
+# Add long-tail noise - typos and weird variants
 noise_variants = [
     "Sales", "SALES", "sale", "sals",
     "Support", "Customer Support", "supprt",
@@ -402,7 +402,7 @@ You should see the 5 canonical categories plus "other" (containing the 500 long-
 
 You can clean Unicode without losing data, write regexes that survive a code review six months later, build a fuzzy address matcher in 20 lines, extract structured fields from free-form support tickets, and process millions of rows with vectorized string ops.
 
-This is the toolkit for any real-world cleaning project. By week 12 we add semantic similarity via embeddings — the modern technique that catches the ones rapidfuzz misses.
+This is the toolkit for any real-world cleaning project. By week 12 we add semantic similarity via embeddings - the modern technique that catches the ones rapidfuzz misses.
 
 ---
 

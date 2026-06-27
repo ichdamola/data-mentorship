@@ -1,4 +1,4 @@
-# Week 11: Lab — Engineer Features Without Leakage
+# Week 11: Lab - Engineer Features Without Leakage
 
 You'll build a synthetic e-commerce dataset, engineer features for "predict whether the user will churn in the next 30 days," train XGBoost, compare against a no-features baseline, and finally introduce leakage on purpose to feel its consequences.
 
@@ -29,7 +29,7 @@ random.seed(42)
 
 ---
 
-## Exercise 11.1 — Synthesize an e-commerce event log
+## Exercise 11.1 - Synthesize an e-commerce event log
 
 ```python
 N_USERS = 5000
@@ -40,7 +40,7 @@ users = pd.DataFrame({
     "user_id": range(N_USERS),
     # 5000 users × 3h = ~625 days spanning 2023-07-01 to ~2025-03. With a
     # snapshot at 2024-04-01 (see SNAPSHOT_DATE below), the second half of
-    # users hasn't signed up yet — they'd otherwise get labeled "churned"
+    # users hasn't signed up yet - they'd otherwise get labeled "churned"
     # by default and bias the training set. We filter to signed-up users
     # before training (Exercise 11.4).
     "signup_date": pd.date_range(start="2023-07-01", periods=N_USERS, freq="3h").date,
@@ -48,7 +48,7 @@ users = pd.DataFrame({
     "plan": np.random.choice(["free", "pro", "enterprise"], N_USERS, p=[0.6, 0.3, 0.1]),
 })
 
-# Generate per-user activity — high-spend users buy more
+# Generate per-user activity - high-spend users buy more
 purchases = []
 for _, u in users.iterrows():
     if u["plan"] == "free":      n_purchases = np.random.poisson(2)
@@ -71,7 +71,7 @@ SNAPSHOT_DATE = pd.Timestamp("2024-04-01")
 
 # Filter to users who had signed up BEFORE the snapshot date. With 5000 users
 # at 3h intervals starting 2023-07-01, the second half don't sign up until
-# after April 2024 — including them in training labels them all as "churned"
+# after April 2024 - including them in training labels them all as "churned"
 # (they have no future purchases either, by construction) and biases the
 # model toward predicting churn on profiles that just haven't appeared yet.
 users = users[pd.to_datetime(users["signup_date"]) < SNAPSHOT_DATE].reset_index(drop=True)
@@ -94,7 +94,7 @@ You should see ~50-70% churn (most users in a synthetic e-commerce are casual). 
 
 ---
 
-## Exercise 11.2 — Baseline: features = none
+## Exercise 11.2 - Baseline: features = none
 
 Train XGBoost on just `country` and `plan`.
 
@@ -113,11 +113,11 @@ baseline_auc = roc_auc_score(y_test, baseline_pred)
 print(f"baseline AUC: {baseline_auc:.4f}")
 ```
 
-You should see AUC around 0.55-0.65 — barely better than random. That's the bar to beat.
+You should see AUC around 0.55-0.65 - barely better than random. That's the bar to beat.
 
 ---
 
-## Exercise 11.3 — Engineer time-window aggregation features (no leakage)
+## Exercise 11.3 - Engineer time-window aggregation features (no leakage)
 
 For each user, compute trailing 30-day and 90-day stats **using only purchases before the SNAPSHOT_DATE**.
 
@@ -175,7 +175,7 @@ You should see 12+ engineered features per user, all computed from data **strict
 
 ---
 
-## Exercise 11.4 — Train with engineered features
+## Exercise 11.4 - Train with engineered features
 
 ```python
 feature_cols = [
@@ -208,9 +208,9 @@ You should see AUC jump to 0.85+. **The features added ~25 AUC points; the model
 
 ---
 
-## Exercise 11.5 — K-fold target encoding (fit on train, apply to test)
+## Exercise 11.5 - K-fold target encoding (fit on train, apply to test)
 
-Target encoding must happen **after** the train/test split — never fold across it. K-fold within train prevents each train row from contributing to its own encoding; the test set then just maps through the train means.
+Target encoding must happen **after** the train/test split - never fold across it. K-fold within train prevents each train row from contributing to its own encoding; the test set then just maps through the train means.
 
 ```python
 from sklearn.model_selection import train_test_split, KFold
@@ -242,11 +242,11 @@ print(train_df.groupby("country")["country_target_encoded"].mean())   # train: k
 print(test_df.groupby("country")["country_target_encoded"].mean())    # test: single mapping
 ```
 
-The two-step pattern — k-fold on train, single mapping on test — is the only way to keep target encoding both leakage-free in training AND deterministic at inference time. Folding the test set in (as a naive implementation might) would leak `churned_30d` into the test features, **the very pattern Exercise 11.8 demonstrates as broken**.
+The two-step pattern - k-fold on train, single mapping on test - is the only way to keep target encoding both leakage-free in training AND deterministic at inference time. Folding the test set in (as a naive implementation might) would leak `churned_30d` into the test features, **the very pattern Exercise 11.8 demonstrates as broken**.
 
 ---
 
-## Exercise 11.6 — sklearn Pipeline with ColumnTransformer
+## Exercise 11.6 - sklearn Pipeline with ColumnTransformer
 
 The reproducible pattern:
 
@@ -292,11 +292,11 @@ The pipeline:
 3. One-hot encodes categoricals (handles unknown categories at inference time)
 4. Trains XGBoost
 
-`cross_val_score` re-fits the entire pipeline (including scaler stats) per fold — **no leakage between train and val statistics**. This is the right shape.
+`cross_val_score` re-fits the entire pipeline (including scaler stats) per fold - **no leakage between train and val statistics**. This is the right shape.
 
 ---
 
-## Exercise 11.7 — Cyclical encoding for time
+## Exercise 11.7 - Cyclical encoding for time
 
 ```python
 # Add cyclical features for signup_dow (day of week) and signup_month
@@ -321,9 +321,9 @@ You should see smooth sin/cos curves. **Day 6 (Saturday) and day 0 (Monday) are 
 
 ---
 
-## Exercise 11.8 — Deliberately introduce leakage
+## Exercise 11.8 - Deliberately introduce leakage
 
-Train with the "all-future-purchases" feature — what XGBoost would do if you didn't enforce the cutoff.
+Train with the "all-future-purchases" feature - what XGBoost would do if you didn't enforce the cutoff.
 
 ```python
 # LEAKED feature: total purchases in next 30 days (which is the LABEL!)
@@ -353,13 +353,13 @@ print(f"clean AUC:     {roc_auc_score(y_test, pred):.4f}")
 print(f"leakage gain (FALSE):  {roc_auc_score(y_test_l, leak_pred) - roc_auc_score(y_test, pred):+.4f}")
 ```
 
-You should see the AUC jump to ~0.95+ with leakage. **That's the inflated metric that would have looked great in dev and crashed in prod** — because the production system has no way to know the future.
+You should see the AUC jump to ~0.95+ with leakage. **That's the inflated metric that would have looked great in dev and crashed in prod** - because the production system has no way to know the future.
 
 The lesson: **the offline metric is meaningless if leakage is possible.** Always verify time-window constraints with the team.
 
 ---
 
-## Exercise 11.9 — Save the pipeline + features metadata
+## Exercise 11.9 - Save the pipeline + features metadata
 
 ```python
 import joblib
@@ -407,7 +407,7 @@ Now in 6 months when someone asks "what's `n_purchases_30d`?", the metadata answ
 
 You can take a clean event log and produce a feature matrix with proper cutoffs. You can encode high-cardinality categoricals without leakage. You can wrap it all in an sklearn Pipeline that re-fits on each CV fold. You've felt the dramatic AUC inflation from a leaky feature firsthand.
 
-Week 12 introduces embeddings — the modern technique for very-high-cardinality text features that classical encoding can't handle.
+Week 12 introduces embeddings - the modern technique for very-high-cardinality text features that classical encoding can't handle.
 
 ---
 

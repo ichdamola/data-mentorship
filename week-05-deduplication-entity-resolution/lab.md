@@ -1,4 +1,4 @@
-# Week 05: Lab — Dedup a Customer Table
+# Week 05: Lab - Dedup a Customer Table
 
 You'll build a synthetic customers dataset with deliberate near-duplicates, dedup it three ways (exact normalize, rapidfuzz, splink), and measure precision/recall against a labeled sample. By the end you'll have a complete entity-resolution pipeline you'd run on real CRM data.
 
@@ -19,7 +19,7 @@ from pathlib import Path
 
 ---
 
-## Exercise 5.1 — Generate a realistic dirty customers table
+## Exercise 5.1 - Generate a realistic dirty customers table
 
 ```python
 random.seed(42)
@@ -99,7 +99,7 @@ You should see ~625 records with ~125 known duplicate pairs. We'll measure each 
 
 ---
 
-## Exercise 5.2 — Exact dedup (after normalization)
+## Exercise 5.2 - Exact dedup (after normalization)
 
 ```python
 def normalize_email(s: str) -> str:
@@ -161,7 +161,7 @@ Typical result: precision ~1.0 (exact normalize is reliable), recall ~0.4-0.6 (i
 
 ---
 
-## Exercise 5.3 — Block + fuzzy score
+## Exercise 5.3 - Block + fuzzy score
 
 Now add fuzzy dedup with rapidfuzz. First, define blocking:
 
@@ -206,7 +206,7 @@ You should see blocking reduce ~200k pairs to ~10k. That's the **~95% comparison
 
 ---
 
-## Exercise 5.4 — Score candidate pairs
+## Exercise 5.4 - Score candidate pairs
 
 ```python
 def pair_score(a, b):
@@ -234,7 +234,7 @@ print(f"score distribution: min={min(scores):.2f}  median={statistics.median(sco
 
 ---
 
-## Exercise 5.5 — Pick a threshold using ground truth
+## Exercise 5.5 - Pick a threshold using ground truth
 
 For a labeled sample, sweep the threshold and pick what maximizes F1:
 
@@ -255,11 +255,11 @@ for t in [0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]:
     print(f"{t:<8.2f}  {p:<6.3f}  {r:<6.3f}  {f1:<6.3f}")
 ```
 
-You should see F1 peak around 0.7-0.8 threshold. **In real production work you can't compute F1 against the full truth set — you stratified-sample ~300 pairs across the score range and label each.** The synthetic ground truth makes this exercise easy; the technique generalizes.
+You should see F1 peak around 0.7-0.8 threshold. **In real production work you can't compute F1 against the full truth set - you stratified-sample ~300 pairs across the score range and label each.** The synthetic ground truth makes this exercise easy; the technique generalizes.
 
 ---
 
-## Exercise 5.6 — Build pair-based clusters
+## Exercise 5.6 - Build pair-based clusters
 
 Now turn matching pairs into entity clusters via connected components.
 
@@ -303,11 +303,11 @@ for i in biggest:
     print(f"  {i:>4}  {r['first_name']} {r['last_name']}  {r['email']}  {r['phone']}")
 ```
 
-The biggest cluster should be a real customer with their dirty duplicates. **If you see a cluster of 30+ records, your threshold is too loose** — usually one over-matchy record is pulling everything in.
+The biggest cluster should be a real customer with their dirty duplicates. **If you see a cluster of 30+ records, your threshold is too loose** - usually one over-matchy record is pulling everything in.
 
 ---
 
-## Exercise 5.7 — Survivorship
+## Exercise 5.7 - Survivorship
 
 Build the golden record per cluster.
 
@@ -339,7 +339,7 @@ print(f"golden records: {len(golden_df)}")
 print(golden_df.head(10))
 ```
 
-You should see ~500 golden records (one per real customer) from your 625 raw records — losing ~125 duplicates. Save it:
+You should see ~500 golden records (one per real customer) from your 625 raw records - losing ~125 duplicates. Save it:
 
 ```python
 Path("data/silver").mkdir(parents=True, exist_ok=True)
@@ -348,7 +348,7 @@ golden_df.write_parquet("data/silver/customers_golden.parquet")
 
 ---
 
-## Exercise 5.8 — splink walkthrough (stretch)
+## Exercise 5.8 - splink walkthrough (stretch)
 
 Now do the same thing with splink, the production-grade tool.
 
@@ -393,13 +393,13 @@ p, r, f1 = evaluate(
 print(f"splink @ 0.8 prob: P={p:.3f}  R={r:.3f}  F1={f1:.3f}")
 ```
 
-Splink (with EM-learned m/u probabilities) typically beats hand-tuned rapidfuzz on real data — and it took fewer lines of code. **For real projects, splink is the answer.**
+Splink (with EM-learned m/u probabilities) typically beats hand-tuned rapidfuzz on real data - and it took fewer lines of code. **For real projects, splink is the answer.**
 
 The rapidfuzz exercise was to teach you what splink is doing under the hood; the splink exercise is what you'd actually ship.
 
 ---
 
-## Exercise 5.9 — Real-world generalization
+## Exercise 5.9 - Real-world generalization
 
 For your own data: pick a column with known duplicates (customer name from a CRM dump, product name from a catalog, company name from an investor list). Apply the same pipeline:
 

@@ -1,27 +1,27 @@
-# Week 02: Theory — pandas and Polars
+# Week 02: Theory - pandas and Polars
 
-Two dataframe libraries dominate Python data work. **pandas** is the incumbent — 15 years old, in every job description, has 90% of the StackOverflow answers. **Polars** is the modern alternative — multi-threaded by default, expression-based, ~10× faster on typical workloads, increasingly the choice for new projects.
+Two dataframe libraries dominate Python data work. **pandas** is the incumbent - 15 years old, in every job description, has 90% of the StackOverflow answers. **Polars** is the modern alternative - multi-threaded by default, expression-based, ~10× faster on typical workloads, increasingly the choice for new projects.
 
 You'll use both. This week teaches you to **think in expressions** (which Polars insists on and pandas grudgingly allows), to recognize the four pandas footguns that bite everyone, and to translate fluently between them.
 
 ---
 
-## Part 1: The mental model — DataFrames vs Series vs expressions
+## Part 1: The mental model - DataFrames vs Series vs expressions
 
 ### What a DataFrame actually is
 
 A DataFrame is a **collection of named columns of equal length**. Each column has a single type. Under the hood (for both libs in 2026):
 
-- **Backed by Apache Arrow** — a columnar in-memory format. Same data layout as Parquet. Zero-copy with each other.
+- **Backed by Apache Arrow** - a columnar in-memory format. Same data layout as Parquet. Zero-copy with each other.
 - Some legacy pandas operations still copy to NumPy arrays internally; Polars stays in Arrow throughout.
 
-The columnar layout matters for performance. Operations like "sum this column" load only that column's bytes from RAM — much less data than scanning row-by-row.
+The columnar layout matters for performance. Operations like "sum this column" load only that column's bytes from RAM - much less data than scanning row-by-row.
 
 ### Series (pandas) vs Column (Polars)
 
 A pandas **Series** is a 1-D array with an **index** (a separate set of labels). The index is pandas's signature feature and its most consequential design choice. It enables `.loc['Alice']` lookups but introduces every alignment surprise you'll meet.
 
-A Polars **Column** is just a named array. No index. Lookups are by position or by filter expression. **Simpler. Faster. Less expressive in two specific cases (time-series alignment, multi-level indexing) — but worth it.**
+A Polars **Column** is just a named array. No index. Lookups are by position or by filter expression. **Simpler. Faster. Less expressive in two specific cases (time-series alignment, multi-level indexing) - but worth it.**
 
 ### The "expressions over columns" framing
 
@@ -52,29 +52,29 @@ In Polars, `pl.col("fare_amount") / pl.col("trip_distance")` doesn't compute any
 
 **Why this matters:** expressions can be:
 - **Combined** in unlimited ways without intermediate materialization
-- **Lazy-evaluated** — Polars's killer feature (Part 5)
-- **Parallelized** automatically — Polars knows the data flow and schedules work across threads
-- **Optimized** by a query planner — column pruning, predicate pushdown, just like SQL
+- **Lazy-evaluated** - Polars's killer feature (Part 5)
+- **Parallelized** automatically - Polars knows the data flow and schedules work across threads
+- **Optimized** by a query planner - column pruning, predicate pushdown, just like SQL
 
 pandas can do most of these things eventually, but you have to know the right incantation. Polars makes them the default.
 
 ---
 
-## Part 2: pandas idioms — the modern way
+## Part 2: pandas idioms - the modern way
 
 Tom Augspurger's "Modern Pandas" series is the reference. The headline patterns:
 
 ### Method chaining over reassignment
 
 ```python
-# BAD — repeated reassignment makes diffs noisy
+# BAD - repeated reassignment makes diffs noisy
 df = pd.read_parquet("trips.parquet")
 df["fare_per_mile"] = df["fare_amount"] / df["trip_distance"]
 df = df[df["fare_per_mile"] < 100]
 df = df.groupby("payment_type")["fare_per_mile"].mean().reset_index()
 result = df.sort_values("fare_per_mile", ascending=False)
 
-# GOOD — method chain, reads top to bottom like SQL
+# GOOD - method chain, reads top to bottom like SQL
 result = (
     pd.read_parquet("trips.parquet")
     .assign(fare_per_mile=lambda d: d["fare_amount"] / d["trip_distance"])
@@ -120,16 +120,16 @@ min_fare = 10
 df.query("fare_amount > @min_fare")
 ```
 
-### `.loc` and `.iloc` — the two ways to index
+### `.loc` and `.iloc` - the two ways to index
 
 | Method | What it uses |
 |---|---|
-| `df.loc[label]`  | Label-based — uses the index values |
-| `df.iloc[position]` | Position-based — uses 0-based integer positions |
+| `df.loc[label]`  | Label-based - uses the index values |
+| `df.iloc[position]` | Position-based - uses 0-based integer positions |
 | `df.at[label, col]` | Scalar lookup by label (fast for single value) |
 | `df.iat[i, j]` | Scalar lookup by position |
 
-**Never use `df[i]` for a row.** It's ambiguous — column or position depending on dtype. Always `.loc` or `.iloc`.
+**Never use `df[i]` for a row.** It's ambiguous - column or position depending on dtype. Always `.loc` or `.iloc`.
 
 ---
 
@@ -140,7 +140,7 @@ df.query("fare_amount > @min_fare")
 ```python
 filtered = df[df["fare_amount"] > 10]
 filtered["fare_amount"] = filtered["fare_amount"] * 2
-# SettingWithCopyWarning — did you set on the copy or the original?
+# SettingWithCopyWarning - did you set on the copy or the original?
 ```
 
 pandas doesn't always know whether `filtered` is a view or a copy of `df`. The warning means "I'm uncertain; your assignment may not propagate where you think."
@@ -149,9 +149,9 @@ pandas doesn't always know whether `filtered` is a view or a copy of `df`. The w
 
 1. Use `.copy()` explicitly: `filtered = df[df["fare_amount"] > 10].copy()`
 2. Use `.loc` for the modification: `df.loc[df["fare_amount"] > 10, "fare_amount"] *= 2`
-3. Use `.assign()` in a chain — produces a guaranteed new DataFrame
+3. Use `.assign()` in a chain - produces a guaranteed new DataFrame
 
-**As of pandas 3.0 (released 2025), Copy-on-Write is always on** — the `pd.options.mode.copy_on_write` toggle is deprecated and removed. Setting it on 3.x raises a `FutureWarning`; on 2.2+ it's already the default behavior. **Don't disable it.** If you want to see the historical footgun, pin `pandas==2.0` in a scratch env — on modern pandas the whole class of bug above quietly went away.
+**As of pandas 3.0 (released 2025), Copy-on-Write is always on** - the `pd.options.mode.copy_on_write` toggle is deprecated and removed. Setting it on 3.x raises a `FutureWarning`; on 2.2+ it's already the default behavior. **Don't disable it.** If you want to see the historical footgun, pin `pandas==2.0` in a scratch env - on modern pandas the whole class of bug above quietly went away.
 
 ### Footgun 2: `apply` is slow
 
@@ -160,12 +160,12 @@ df["distance_km"] = df["trip_distance"].apply(lambda x: x * 1.609344)   # SLOW
 df["distance_km"] = df["trip_distance"] * 1.609344                        # FAST
 ```
 
-`.apply` falls back to Python-level iteration. Vectorized arithmetic uses NumPy underneath — typically 10-100× faster.
+`.apply` falls back to Python-level iteration. Vectorized arithmetic uses NumPy underneath - typically 10-100× faster.
 
 When you genuinely need element-wise logic that's not vectorizable, you have three options:
 
 1. **Vectorize anyway** with `np.where`, `np.select`, `pd.cut`, etc.
-2. **Use Polars** — its `pl.when().then().otherwise()` expressions JIT-compile to multi-threaded code
+2. **Use Polars** - its `pl.when().then().otherwise()` expressions JIT-compile to multi-threaded code
 3. **Numba `@njit`** for the truly arbitrary case
 
 The instinct to reach for `.apply` is what makes pandas slow for new users. **Resist.**
@@ -181,14 +181,14 @@ df.dtypes
 # amount            object   ← actually floats, but some are "12.50" and some are "N/A"
 ```
 
-`object` is pandas's name for "Python objects" — a column of arbitrary Python references. Slow, memory-hungry, breaks vectorization. The most common source of "why is this 100× slower than I expected" surprises.
+`object` is pandas's name for "Python objects" - a column of arbitrary Python references. Slow, memory-hungry, breaks vectorization. The most common source of "why is this 100× slower than I expected" surprises.
 
 **Fixes:**
 
 1. Use `dtype=` in `read_csv` to set types up front
 2. Use `parse_dates=` to coerce date columns
 3. Convert to proper dtypes after load: `df["amount"] = pd.to_numeric(df["amount"], errors="coerce")`
-4. Use pandas 2.0+ **PyArrow-backed dtypes** (`dtype_backend="pyarrow"`) — first-class strings, dates, dictionaries; no object fallback
+4. Use pandas 2.0+ **PyArrow-backed dtypes** (`dtype_backend="pyarrow"`) - first-class strings, dates, dictionaries; no object fallback
 
 ```python
 df = pd.read_csv("messy.csv", dtype_backend="pyarrow")
@@ -208,13 +208,13 @@ df.sort_values("amount", inplace=True)   # appears to save memory; doesn't
 
 ---
 
-## Part 4: Polars expressions — the actual mental model
+## Part 4: Polars expressions - the actual mental model
 
 Polars's expression API is the part most pandas users find foreign at first. Once it clicks it's hard to go back.
 
 ### The four contexts
 
-An expression has no value on its own — it's a recipe. It executes when consumed by a **context**:
+An expression has no value on its own - it's a recipe. It executes when consumed by a **context**:
 
 | Context | What it does |
 |---|---|
@@ -230,21 +230,21 @@ import polars as pl
 
 df = pl.read_parquet("data/yellow_tripdata_2024-01.parquet")
 
-# select — keep only computed columns
+# select - keep only computed columns
 df.select(
     pl.col("fare_amount"),
     fare_per_mile=pl.col("fare_amount") / pl.col("trip_distance"),
 )
 
-# with_columns — keep all, add new
+# with_columns - keep all, add new
 df.with_columns(
     fare_per_mile=pl.col("fare_amount") / pl.col("trip_distance"),
 )
 
-# filter — keep rows where expression is true
+# filter - keep rows where expression is true
 df.filter(pl.col("fare_amount") > 10)
 
-# group_by + agg — collapse per group
+# group_by + agg - collapse per group
 df.group_by("payment_type").agg(
     avg_fare=pl.col("fare_amount").mean(),
     n_trips=pl.len(),
@@ -276,9 +276,9 @@ The cleanest Polars feature: expressions chain endlessly without intermediate va
 )
 ```
 
-Note `pl.col("is_big_tip").mean()` — averaging a boolean column gives the proportion. Idiomatic across Polars.
+Note `pl.col("is_big_tip").mean()` - averaging a boolean column gives the proportion. Idiomatic across Polars.
 
-### `pl.when().then().otherwise()` — the CASE WHEN
+### `pl.when().then().otherwise()` - the CASE WHEN
 
 ```python
 df.with_columns(
@@ -292,12 +292,12 @@ df.with_columns(
 )
 ```
 
-Pure expression, fully vectorized, no Python loop. Compare to pandas `np.select` — same effect, more verbose syntax.
+Pure expression, fully vectorized, no Python loop. Compare to pandas `np.select` - same effect, more verbose syntax.
 
 ### Window functions: `.over()`
 
 ```python
-# "fare amount as percent of customer's total" — same as SQL Part 4 / Part 11
+# "fare amount as percent of customer's total" - same as SQL Part 4 / Part 11
 df.with_columns(
     pct_of_day_total=pl.col("fare_amount") / pl.col("fare_amount").sum().over(pl.col("pickup_date"))
 )
@@ -312,14 +312,14 @@ The `.over(col)` modifier is Polars's `OVER (PARTITION BY col)`. Same semantics;
 
 ---
 
-## Part 5: Lazy mode — Polars's killer feature
+## Part 5: Lazy mode - Polars's killer feature
 
 Eager mode (the default, what we've been writing) executes each operation immediately. Lazy mode builds a query plan, optimizes it, then executes it all at once when you call `.collect()`.
 
 ```python
 import polars as pl
 
-# Lazy — note .scan_parquet (returns LazyFrame), not .read_parquet
+# Lazy - note .scan_parquet (returns LazyFrame), not .read_parquet
 lazy = pl.scan_parquet("data/yellow_tripdata_2024-01.parquet")
 
 plan = (
@@ -330,7 +330,7 @@ plan = (
     .agg(pl.col("total_amount").mean())
 )
 
-print(plan.explain())   # show the query plan — even before running
+print(plan.explain())   # show the query plan - even before running
 result = plan.collect()  # NOW execute
 ```
 
@@ -343,7 +343,7 @@ What Polars optimizes:
 | **Common subexpression elimination** | If you compute `pl.col("a") + pl.col("b")` twice, it's computed once |
 | **Slice pushdown** | If your query ends with `.limit(1000)`, Polars stops reading after enough rows |
 
-For Parquet files specifically, projection + predicate pushdown is **the** win — you can query 100 GB of data on a 16 GB laptop because Polars never loads what it doesn't need.
+For Parquet files specifically, projection + predicate pushdown is **the** win - you can query 100 GB of data on a 16 GB laptop because Polars never loads what it doesn't need.
 
 ```python
 # This actually works on a laptop against a 50 GB parquet
@@ -354,7 +354,7 @@ Habit to adopt: **default to `.scan_parquet` / lazy mode**. Drop to eager only w
 
 ---
 
-## Part 6: Side-by-side — pandas → Polars Rosetta Stone
+## Part 6: Side-by-side - pandas → Polars Rosetta Stone
 
 | Operation | pandas | Polars |
 |---|---|---|
@@ -383,7 +383,7 @@ The mental compiler: pandas mostly speaks "verbs on DataFrames", Polars speaks "
 
 ---
 
-## Part 7: Performance — when each wins
+## Part 7: Performance - when each wins
 
 ### Where Polars clearly wins
 
@@ -405,7 +405,7 @@ Real numbers for the NYC taxi 3M-row file on a M2 laptop:
 
 ### Where pandas still wins
 
-- Tiny data (< 100k rows) — Polars's planning overhead doesn't amortize
+- Tiny data (< 100k rows) - Polars's planning overhead doesn't amortize
 - Ecosystem integration: matplotlib, seaborn, sklearn all expect DataFrames-with-index
 - Time-series operations with hierarchical indexes (Polars handles time series fine but doesn't replicate every pandas idiom)
 - Anything that lives in a notebook and reads from a CSV every cell
@@ -414,7 +414,7 @@ Real numbers for the NYC taxi 3M-row file on a M2 laptop:
 
 - **New project**: Polars, lazy mode by default.
 - **Existing pandas project**: incremental migration. Replace hot paths first.
-- **Sklearn pipelines / matplotlib charts**: convert at the boundary — `df.to_pandas()` is cheap (Arrow zero-copy on most operations).
+- **Sklearn pipelines / matplotlib charts**: convert at the boundary - `df.to_pandas()` is cheap (Arrow zero-copy on most operations).
 - **dbt models**: SQL (week 01), not either of these.
 
 ---
@@ -449,7 +449,7 @@ The DataFrame is structure for the *boundaries* of your pipeline (input data, ou
 In 2026, both pandas and Polars are migrating to **Arrow as the canonical in-memory format**. Two consequences:
 
 - **Zero-copy conversion**: `pd.read_parquet` → DataFrame → `df.to_polars()` → LazyFrame is bytes-cheap. No serialization.
-- **Better dtype support in pandas**: `pd.read_csv("f.csv", dtype_backend="pyarrow")` gives you proper string, date, and missing-value support — no more `object` columns.
+- **Better dtype support in pandas**: `pd.read_csv("f.csv", dtype_backend="pyarrow")` gives you proper string, date, and missing-value support - no more `object` columns.
 
 A practical mental model: **Arrow is the data format. pandas and Polars are two different APIs over the same data.** Pick whichever API is more ergonomic for the immediate task.
 
@@ -463,7 +463,7 @@ Topics that look adjacent but you can skip for now:
 |---|---|
 | pandas MultiIndex (hierarchical indexing) | Time-series / panel data work specifically |
 | Dask, Modin | When data > RAM. Polars handles up to ~5× RAM via streaming; beyond that, Dask. |
-| Vaex, cuDF (GPU) | Specialized — GPU shines on huge data, niche otherwise |
+| Vaex, cuDF (GPU) | Specialized - GPU shines on huge data, niche otherwise |
 | `pd.Categorical` | When you have low-cardinality strings repeated millions of times |
 | `numexpr`, `Bottleneck` | Auto-enabled in pandas. You rarely call them directly. |
 

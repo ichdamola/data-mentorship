@@ -1,4 +1,4 @@
-# Week 16: Lab — Build the Capstone Pipeline
+# Week 16: Lab - Build the Capstone Pipeline
 
 The final lab. You'll build a complete bronze → silver → gold pipeline with dbt + Dagster + DuckDB, schedule it, wire a dashboard, and ship a `CAPSTONE.md` documenting it all. This is your portfolio piece.
 
@@ -44,7 +44,7 @@ uv init
 
 ---
 
-## Exercise 16.1 — Bronze ingest (Python)
+## Exercise 16.1 - Bronze ingest (Python)
 
 Reuse the week 03 pattern. Save as `ingestion/nyc_open_data.py`:
 
@@ -119,7 +119,7 @@ You should see `data/bronze/nyc_trees/page_*.jsonl.gz` files.
 
 ---
 
-## Exercise 16.2 — Bronze → DuckDB
+## Exercise 16.2 - Bronze → DuckDB
 
 Build a small Python step that loads the bronze JSONLs into a DuckDB table.
 
@@ -166,7 +166,7 @@ uv run python ingestion/bronze_to_duckdb.py
 
 ---
 
-## Exercise 16.3 — dbt project
+## Exercise 16.3 - dbt project
 
 Create the dbt project:
 
@@ -299,7 +299,7 @@ You should see:
 
 ---
 
-## Exercise 16.4 — Dagster orchestrator
+## Exercise 16.4 - Dagster orchestrator
 
 Create `orchestrator/definitions.py`:
 
@@ -369,11 +369,11 @@ bronze_nyc_trees → bronze_loaded_to_duckdb → stg_trees → fct_trees_by_boro
                                           → dim_species
 ```
 
-Click "Materialize all" — the whole pipeline runs end-to-end. Each asset shows green when complete.
+Click "Materialize all" - the whole pipeline runs end-to-end. Each asset shows green when complete.
 
 ---
 
-## Exercise 16.5 — Wire Metabase to the warehouse
+## Exercise 16.5 - Wire Metabase to the warehouse
 
 ```bash
 docker run -d -p 3000:3000 -v ${PWD}/data:/data --name capstone-metabase metabase/metabase
@@ -392,7 +392,7 @@ Apply the week 15 rules: headline + bullets, Y-axes starting at 0, no pie charts
 
 ---
 
-## Exercise 16.6 — Test and observability
+## Exercise 16.6 - Test and observability
 
 Add freshness checks to your dbt sources:
 
@@ -423,11 +423,11 @@ Add `pip install dbt-elementary` and integrate with Elementary for an HTML repor
 
 ---
 
-## Exercise 16.7 — Schedule for real
+## Exercise 16.7 - Schedule for real
 
 Two options:
 
-### Option A — Cron on your machine
+### Option A - Cron on your machine
 
 ```bash
 # Edit crontab
@@ -437,7 +437,7 @@ crontab -e
 0 2 * * * cd /path/to/data-mentorship-capstone && /path/to/uv run dagster job execute -f orchestrator/definitions.py -j daily_pipeline
 ```
 
-### Option B — Dagster Cloud
+### Option B - Dagster Cloud
 
 Free tier handles small workloads:
 
@@ -446,7 +446,7 @@ dagster-cloud config setup
 dagster-cloud deployment add-location  ...
 ```
 
-### Option C — GitHub Actions
+### Option C - GitHub Actions
 
 ```yaml
 # .github/workflows/daily.yml
@@ -486,10 +486,10 @@ For the capstone: any of these is fine. Cron is the simplest; GitHub Actions is 
 
 ---
 
-## Exercise 16.8 — Write CAPSTONE.md
+## Exercise 16.8 - Write CAPSTONE.md
 
 ```markdown
-# Data Mentorship Capstone — NYC Trees Pipeline
+# Data Mentorship Capstone - NYC Trees Pipeline
 
 **Live pipeline**: GitHub Actions running daily at 02:00 UTC ([workflow](https://github.com/YOUR/repo/actions))
 **Dashboard**: http://your-domain.com/dashboard or screenshots/dashboard.png
@@ -559,12 +559,12 @@ Schedule: daily at 02:00 UTC.
 
 ## What I learned
 
-(Your reflection — three paragraphs on the hardest part, the surprising part, and what you'd do differently.)
+(Your reflection - three paragraphs on the hardest part, the surprising part, and what you'd do differently.)
 
 ## Sources & credit
 
-- NYC Open Data — tree census API
-- dbt, Dagster, DuckDB, Metabase — open source tooling
+- NYC Open Data - tree census API
+- dbt, Dagster, DuckDB, Metabase - open source tooling
 - Data Mentorship curriculum (weeks 01-16)
 ```
 
@@ -572,7 +572,7 @@ Push to GitHub. **Send the link in your portfolio.**
 
 ---
 
-## Exercise 16.9 — Final cleanup
+## Exercise 16.9 - Final cleanup
 
 ```bash
 # Ensure everything works end-to-end from a fresh clone
@@ -647,18 +647,18 @@ Pick one direction for the next 6-12 months and go deep:
 
 ## Read these next
 
-- [Sebastian Raschka's blog](https://magazine.sebastianraschka.com/) — practical ML
-- [Chip Huyen's blog](https://huyenchip.com/blog/) — ML systems & data in industry
-- [Tobias Macey's "Data Engineering Podcast"](https://www.dataengineeringpodcast.com/) — weekly industry trends
-- [The Locally Optimistic blog](https://locallyoptimistic.com/) — analytics engineering culture
-- [Benn Stancil's Substack](https://benn.substack.com/) — sharp takes on the modern data stack
+- [Sebastian Raschka's blog](https://magazine.sebastianraschka.com/) - practical ML
+- [Chip Huyen's blog](https://huyenchip.com/blog/) - ML systems & data in industry
+- [Tobias Macey's "Data Engineering Podcast"](https://www.dataengineeringpodcast.com/) - weekly industry trends
+- [The Locally Optimistic blog](https://locallyoptimistic.com/) - analytics engineering culture
+- [Benn Stancil's Substack](https://benn.substack.com/) - sharp takes on the modern data stack
 
 ## A final note
 
-Hand-rolling everything you've hand-rolled this curriculum is **not** what production looks like. In production you'll mostly use libraries — dbt, Dagster, Snowflake, Metabase, the rest. **The point was never to make you implement these forever.** The point was to make you a person who understands what each of them does.
+Hand-rolling everything you've hand-rolled this curriculum is **not** what production looks like. In production you'll mostly use libraries - dbt, Dagster, Snowflake, Metabase, the rest. **The point was never to make you implement these forever.** The point was to make you a person who understands what each of them does.
 
-After 16 weeks at this depth, you're hard to surprise. New tools, new vendors, new patterns — they'll fit into your mental model instead of feeling like magic. Keep that bar. Keep reading source. Keep measuring. Keep shipping.
+After 16 weeks at this depth, you're hard to surprise. New tools, new vendors, new patterns - they'll fit into your mental model instead of feeling like magic. Keep that bar. Keep reading source. Keep measuring. Keep shipping.
 
 Welcome to data engineering at the inside.
 
-— end of curriculum —
+- end of curriculum -

@@ -1,4 +1,4 @@
-# Week 03: Lab — Build a Real API Puller
+# Week 03: Lab - Build a Real API Puller
 
 You'll build a complete ingestion pipeline: paginated pull from NYC Open Data (the same source the taxi data comes from), with retries, rate limiting, resumability, and bronze → silver conversion. By the end, you'll have a script you could run on a schedule.
 
@@ -32,11 +32,11 @@ BRONZE_DIR.mkdir(parents=True, exist_ok=True)
 SILVER_DIR.mkdir(parents=True, exist_ok=True)
 ```
 
-The 2015 NYC street tree census — about 680k rows, 41 columns, real messy public data with addresses, species, dates, conditions.
+The 2015 NYC street tree census - about 680k rows, 41 columns, real messy public data with addresses, species, dates, conditions.
 
 ---
 
-## Exercise 3.1 — Sanity check the API
+## Exercise 3.1 - Sanity check the API
 
 ```python
 with httpx.Client(timeout=30) as client:
@@ -45,7 +45,7 @@ with httpx.Client(timeout=30) as client:
     print(json.dumps(resp.json()[:2], indent=2))
 ```
 
-You should see two tree records — JSON objects with fields like `tree_id`, `spc_common`, `health`, `borough`.
+You should see two tree records - JSON objects with fields like `tree_id`, `spc_common`, `health`, `borough`.
 
 Count the total rows:
 
@@ -58,7 +58,7 @@ with httpx.Client(timeout=30) as client:
 
 ---
 
-## Exercise 3.2 — Build the resilient fetcher
+## Exercise 3.2 - Build the resilient fetcher
 
 ```python
 class TransientError(Exception):
@@ -97,9 +97,9 @@ The `User-Agent` is the polite-scraping signature from the theory (Part 4). Alwa
 
 ---
 
-## Exercise 3.3 — Write the bronze layer
+## Exercise 3.3 - Write the bronze layer
 
-Bronze = raw, untouched, append-only. JSONL is the right format here — easy to append, easy to inspect.
+Bronze = raw, untouched, append-only. JSONL is the right format here - easy to append, easy to inspect.
 
 ```python
 def write_bronze_page(rows: list[dict], offset: int):
@@ -125,7 +125,7 @@ Why `orjson` instead of stdlib `json`? It's 5-10× faster on encoding/decoding. 
 
 ---
 
-## Exercise 3.4 — Resumable pull with checkpointing
+## Exercise 3.4 - Resumable pull with checkpointing
 
 The full pull loop with state file:
 
@@ -172,7 +172,7 @@ ingest(max_rows=5000)
 
 ---
 
-## Exercise 3.5 — Bronze size sanity
+## Exercise 3.5 - Bronze size sanity
 
 ```python
 import subprocess
@@ -194,7 +194,7 @@ A 5000-row sample is typically ~500 KB compressed JSONL. Same data uncompressed 
 
 ---
 
-## Exercise 3.6 — Bronze → Silver conversion
+## Exercise 3.6 - Bronze → Silver conversion
 
 Silver is typed, validated, single-file Parquet. The conversion job:
 
@@ -207,7 +207,7 @@ def bronze_to_silver():
             for line in h:
                 all_rows.append(orjson.loads(line))
 
-    # Load into Polars — get auto-inferred types
+    # Load into Polars - get auto-inferred types
     df = pl.DataFrame(all_rows)
     print(f"loaded {len(df)} rows, {len(df.columns)} columns")
     print(df.schema)
@@ -232,7 +232,7 @@ silver.head(3)
 
 ---
 
-## Exercise 3.7 — Measure the format wins
+## Exercise 3.7 - Measure the format wins
 
 Compare bronze (gzipped JSONL), uncompressed JSONL, CSV, and Parquet on disk:
 
@@ -288,7 +288,7 @@ jsonl gzip            ~800 KB    1.6x
 
 ---
 
-## Exercise 3.8 — Read-speed comparison + predicate pushdown
+## Exercise 3.8 - Read-speed comparison + predicate pushdown
 
 ```python
 def bench(fn, n_iter=5):
@@ -332,11 +332,11 @@ parquet (full):          8.0 ms       ~7x faster than CSV
 parquet (predicate):     3.0 ms       ~17x faster (read only the relevant slice)
 ```
 
-**Predicate pushdown is the killer feature for large datasets.** On the 50 GB versions of this query, you'd see hours vs minutes — same query.
+**Predicate pushdown is the killer feature for large datasets.** On the 50 GB versions of this query, you'd see hours vs minutes - same query.
 
 ---
 
-## Exercise 3.9 — Inspect Parquet metadata
+## Exercise 3.9 - Inspect Parquet metadata
 
 DuckDB / pyarrow can show what's inside a Parquet file:
 
@@ -357,11 +357,11 @@ for i in range(rg0.num_columns):
     print(f"  {col.path_in_schema:20s}  min={col.statistics.min}  max={col.statistics.max}  nulls={col.statistics.null_count}")
 ```
 
-You'll see min/max per column per row group — the metadata that lets engines skip row groups during a filter scan. That's how Parquet does its magic.
+You'll see min/max per column per row group - the metadata that lets engines skip row groups during a filter scan. That's how Parquet does its magic.
 
 ---
 
-## Exercise 3.10 (stretch) — Postgres logical replication into DuckDB
+## Exercise 3.10 (stretch) - Postgres logical replication into DuckDB
 
 If you have Docker, set up Postgres and stream changes into DuckDB. This is the modern CDC pattern.
 
@@ -389,7 +389,7 @@ SELECT pg_create_logical_replication_slot('orders_slot', 'pgoutput');
 ```
 
 ```python
-# Python — incremental pull via updated_at watermark (simpler than wal2json)
+# Python - incremental pull via updated_at watermark (simpler than wal2json)
 import psycopg2
 
 LAST_SEEN_PATH = Path("orders_last_seen.txt")
@@ -416,7 +416,7 @@ def incremental_sync():
     conn.close()
 ```
 
-For real CDC you'd use [Debezium](https://debezium.io/) or [PeerDB](https://www.peerdb.io/) — they emit logical-decoding events to Kafka/HTTP. The watermark approach above is the simpler "good enough" pattern for the medium-data tier.
+For real CDC you'd use [Debezium](https://debezium.io/) or [PeerDB](https://www.peerdb.io/) - they emit logical-decoding events to Kafka/HTTP. The watermark approach above is the simpler "good enough" pattern for the medium-data tier.
 
 ---
 
@@ -437,9 +437,9 @@ For real CDC you'd use [Debezium](https://debezium.io/) or [PeerDB](https://www.
 
 ## What you just did
 
-You built a real ingestion pipeline. Not toy. The pattern you wrote — paginated pull + retries + bronze storage + checkpoint + silver Parquet — is what dlt, Airbyte, Fivetran, and Stitch all implement underneath. **They're full-time engineers building a more polished version of what you just shipped in 200 lines.**
+You built a real ingestion pipeline. Not toy. The pattern you wrote - paginated pull + retries + bronze storage + checkpoint + silver Parquet - is what dlt, Airbyte, Fivetran, and Stitch all implement underneath. **They're full-time engineers building a more polished version of what you just shipped in 200 lines.**
 
-For the rest of this curriculum, you'll consume Parquet files via Polars and DuckDB rather than rebuilding the ingestion every week. Week 04 starts validating the data you just pulled — building the quality gates that decide whether silver gets blessed as gold.
+For the rest of this curriculum, you'll consume Parquet files via Polars and DuckDB rather than rebuilding the ingestion every week. Week 04 starts validating the data you just pulled - building the quality gates that decide whether silver gets blessed as gold.
 
 ---
 

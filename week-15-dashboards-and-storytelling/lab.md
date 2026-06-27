@@ -1,4 +1,4 @@
-# Week 15: Lab — Stand Up a Dashboard
+# Week 15: Lab - Stand Up a Dashboard
 
 You'll spin up Metabase (or Superset, your choice) against DuckDB, build a clean 5-chart executive dashboard for the NYC taxi data, iterate on three "stakeholder asks," critique three published dashboards, then build the same layout in Streamlit as a code-driven alternative.
 
@@ -39,13 +39,13 @@ You should see ~3M rows in `data/taxi.duckdb`.
 
 ---
 
-## Exercise 15.1 — Connect Metabase to DuckDB
+## Exercise 15.1 - Connect Metabase to DuckDB
 
 Metabase doesn't ship native DuckDB support; you have two options:
 
 **Option A (simplest)**: export your DuckDB tables to Parquet, load into PostgreSQL/SQLite, point Metabase at that.
 
-**Option B (DuckDB plugin)**: install the [metabase-duckdb plugin](https://github.com/AlexR2D2/metabase_duckdb_driver) — drop the JAR in Metabase's `plugins/` folder, restart, connect.
+**Option B (DuckDB plugin)**: install the [metabase-duckdb plugin](https://github.com/AlexR2D2/metabase_duckdb_driver) - drop the JAR in Metabase's `plugins/` folder, restart, connect.
 
 For the lab, the cleanest path is Option A with SQLite:
 
@@ -84,7 +84,7 @@ In Metabase: **Admin → Databases → Add database → SQLite**, point at `data
 
 ---
 
-## Exercise 15.2 — Build the 5-chart dashboard
+## Exercise 15.2 - Build the 5-chart dashboard
 
 Plan: **a "January 2024 Taxi Performance" dashboard**. Five charts, headline, bullets.
 
@@ -152,7 +152,7 @@ In Metabase: **+ New → Dashboard**. Add a text card at the top:
 
 - Weekday volumes peak Wed-Fri; weekend is slowest
 - Avg fare stable at ~$16/trip across the month
-- One drop on Jan 7 — investigate (snowstorm?)
+- One drop on Jan 7 - investigate (snowstorm?)
 ```
 
 Then drag the 5 charts in below. Set the layout: 2 KPIs across the top, 3 charts in a row below. Save.
@@ -161,13 +161,13 @@ Open the dashboard. Read the top in 5 seconds. **Did you get the gist? If not, t
 
 ---
 
-## Exercise 15.3 — Iterate on stakeholder asks
+## Exercise 15.3 - Iterate on stakeholder asks
 
 A stakeholder Slack messages you three asks. Handle each.
 
 ### Ask 1: "Can we add a card showing the busiest day?"
 
-You: ✅ valid — adds context. SQL:
+You: ✅ valid - adds context. SQL:
 
 ```sql
 SELECT day, trips FROM daily_summary ORDER BY trips DESC LIMIT 1
@@ -177,7 +177,7 @@ Add as a "biggest day" number card. Small text annotation: "Busiest day was Frid
 
 ### Ask 2: "Can we add a borough breakdown? And trip-type pie chart?"
 
-You: borough breakdown is reasonable. **Pie chart NO** — replace with horizontal bar.
+You: borough breakdown is reasonable. **Pie chart NO** - replace with horizontal bar.
 
 ```sql
 -- Borough breakdown (assuming we joined PULocationID to a borough table)
@@ -197,19 +197,19 @@ GROUP BY payment_type
 ORDER BY trips DESC
 ```
 
-Add a horizontal bar chart. Push back politely on the pie request: "Bar chart makes comparison easier — humans can compare bar lengths but struggle with pie slice areas."
+Add a horizontal bar chart. Push back politely on the pie request: "Bar chart makes comparison easier - humans can compare bar lengths but struggle with pie slice areas."
 
 ### Ask 3: "Can we add 20 more dimensions for drill-down?"
 
-You: **NO** — propose linking to a separate "deep-dive" dashboard.
+You: **NO** - propose linking to a separate "deep-dive" dashboard.
 
-Build a second dashboard "Taxi — Deep Dive" with the drill-downs they want. Link to it from the main dashboard via text card. Keep the main dashboard at 5-6 charts.
+Build a second dashboard "Taxi - Deep Dive" with the drill-downs they want. Link to it from the main dashboard via text card. Keep the main dashboard at 5-6 charts.
 
 **Push back on bloat. The dashboard's job is to make a decision possible.**
 
 ---
 
-## Exercise 15.4 — Critique published dashboards
+## Exercise 15.4 - Critique published dashboards
 
 Pick 3 publicly-viewable dashboards. For each, write 3 lines:
 
@@ -226,13 +226,13 @@ Good sources:
 
 Example critique:
 
-> **NYC TLC public dashboard**: Does well — clear navigation, embedded narrative. Poorly — bar charts with non-zero Y, pie charts with 8 slices, no last-updated timestamp. I'd: replace pies with horizontal bars, add timestamps, simplify color palette.
+> **NYC TLC public dashboard**: Does well - clear navigation, embedded narrative. Poorly - bar charts with non-zero Y, pie charts with 8 slices, no last-updated timestamp. I'd: replace pies with horizontal bars, add timestamps, simplify color palette.
 
 The discipline of explicit critique sharpens your own design instincts.
 
 ---
 
-## Exercise 15.5 — Streamlit alternative
+## Exercise 15.5 - Streamlit alternative
 
 For code-driven dashboards, build the same view in Streamlit.
 
@@ -243,7 +243,7 @@ import duckdb
 import plotly.express as px
 import pandas as pd
 
-st.set_page_config(page_title="NYC Taxi — Jan 2024", layout="wide")
+st.set_page_config(page_title="NYC Taxi - Jan 2024", layout="wide")
 
 con = duckdb.connect("data/taxi.duckdb", read_only=True)
 
@@ -254,7 +254,7 @@ st.markdown("""
 
 - Weekday volumes peak Wed-Fri; weekend is slowest
 - Avg fare stable at ~$16/trip across the month
-- One drop on Jan 7 — investigate (snowstorm?)
+- One drop on Jan 7 - investigate (snowstorm?)
 """)
 
 # KPIs
@@ -313,7 +313,7 @@ You should see your dashboard at http://localhost:8501. Code-driven dashboards w
 
 ---
 
-## Exercise 15.6 — Build a memo (the senior deliverable)
+## Exercise 15.6 - Build a memo (the senior deliverable)
 
 Sometimes the dashboard isn't the answer; a memo is. Write a 1-page Markdown memo for the question "should we invest in increasing weekend taxi service?"
 
@@ -350,7 +350,7 @@ The memo is what gets read; the dashboard is the evidence. **Both are deliverabl
 
 ---
 
-## Exercise 15.7 — Set up a Slack digest (alternative to dashboard)
+## Exercise 15.7 - Set up a Slack digest (alternative to dashboard)
 
 For periodic reporting, Slack messages often beat dashboards:
 
@@ -368,7 +368,7 @@ revenue_change = (total[1] - prev[1]) / prev[1] * 100
 trip_change = (total[0] - prev[0]) / prev[0] * 100
 
 message = f"""
-📊 *Daily Taxi Update — Jan 15, 2024*
+📊 *Daily Taxi Update - Jan 15, 2024*
 • Trips: {total[0]:,} ({trip_change:+.1f}% vs yesterday)
 • Revenue: ${total[1]:,.0f} ({revenue_change:+.1f}% vs yesterday)
 """
